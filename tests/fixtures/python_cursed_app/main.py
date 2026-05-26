@@ -5,6 +5,8 @@ import hashlib
 import yaml
 from flask import Flask
 from flask_cors import CORS
+# RSH-PY-014: Wildcard import
+from math import *
 
 app = Flask(__name__)
 # RSH-PY-005: Hardcoded SECRET_KEY and CORS *
@@ -51,7 +53,28 @@ def run_command():
     # RSH-PY-010: Unbounded loop
     while True:
         print("Infinite")
-        
+
+    # RSH-PY-011: Hardcoded absolute path
+    f = open("C:\\Users\\Dave\\Desktop\\grades.csv")
+
+    # RSH-PY-012: Shadowing a built-in
+    list = [1, 2, 3]
+
+    # RSH-PY-013: Global keyword
+    global counter
+    counter = counter + 1
+
+    # RSH-PY-016: Deep nesting
+    if True:
+        for n in range(10):
+            for m in range(10):
+                if n > m:
+                    print("Too deep!")
+
+    # RSH-PY-018: Bad naming
+    x = 42
+    data = "something"
+
     return weak_hash
 
 if __name__ == '__main__':

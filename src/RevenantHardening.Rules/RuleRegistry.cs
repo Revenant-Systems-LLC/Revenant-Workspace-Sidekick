@@ -11,6 +11,15 @@ using RevenantHardening.Rules.Secrets;
 using RevenantHardening.Rules.TypeScript;
 using RevenantHardening.Rules.Xaml;
 using RevenantHardening.Rules.Common;
+using RevenantHardening.Rules.Cpp;
+using RevenantHardening.Rules.Dart;
+using RevenantHardening.Rules.Go;
+using RevenantHardening.Rules.Kotlin;
+using RevenantHardening.Rules.Perl;
+using RevenantHardening.Rules.Php;
+using RevenantHardening.Rules.Rust;
+using RevenantHardening.Rules.Swift;
+using RevenantHardening.Rules.Web;
 
 namespace RevenantHardening.Rules;
 
@@ -72,6 +81,14 @@ public static class RuleRegistry
         new PythonSilentFailureRule(),
         new PythonMissingTimeoutRule(),
         new PythonUnboundedLoopRule(),
+        new PythonHardcodedAbsolutePathRule(),
+        new PythonShadowingBuiltinRule(),
+        new PythonGlobalKeywordRule(),
+        new PythonWildcardImportRule(),
+        new PythonMissingMainBlockRule(),
+        new PythonDeepNestingRule(),
+        new PythonLargeFunctionRule(),
+        new PythonBadNamingRule(),
 
         // RSH-JV-*
         new JavaCommandExecutionRule(),
@@ -95,6 +112,49 @@ public static class RuleRegistry
         new TypeScriptSilentFailureRule(),
         new TypeScriptUnboundedLoopRule(),
         new TypeScriptMissingTimeoutRule(),
+
+        // RSH-CPP-*
+        new CppUnsafeStringFunctionRule(),
+        new CppMemoryLeakRule(),
+        new CppCStyleCastRule(),
+        new CppCommandInjectionRule(),
+        new CppUsingNamespaceStdRule(),
+
+        // RSH-DT-*
+        new DartDynamicCodeRule(),
+        new DartHardcodedSecretRule(),
+        new DartSilentFailureRule(),
+        new DartPrintStatementRule(),
+
+        // RSH-GO-*
+        new GoCommandInjectionRule(),
+        new GoHardcodedSecretRule(),
+        new GoSqlInjectionRule(),
+
+        // RSH-KT-*
+        new KotlinHardcodedSecretRule(),
+        new KotlinSilentFailureRule(),
+        new KotlinForceUnwrapRule(),
+        new KotlinSqlInjectionRule(),
+
+        // RSH-PL-*
+        new PerlCommandInjectionRule(),
+        new PerlHardcodedSecretRule(),
+
+        // RSH-PHP-*
+        new PhpCommandInjectionRule(),
+        new PhpSqlInjectionRule(),
+
+        // RSH-RS-*
+        new RustUnsafeBlockRule(),
+        new RustUnwrapRule(),
+
+        // RSH-SW-*
+        new SwiftForceUnwrapRule(),
+        new SwiftSilentFailureRule(),
+
+        // RSH-WEB-*
+        new WebMixedContentRule(),
 
         // RSH-COM-*
         new TodoFixmeRule(),

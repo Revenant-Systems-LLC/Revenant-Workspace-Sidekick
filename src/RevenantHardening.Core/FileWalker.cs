@@ -8,7 +8,9 @@ public static class FileWalker
     {
         ".cs", ".xaml", ".resx", ".csproj", ".props", ".targets",
         ".config", ".json", ".xml", ".appxmanifest",
-        ".dll", ".exe", ".py", ".java", ".ts", ".tsx", ".js", ".jsx"
+        ".dll", ".exe", ".py", ".java", ".ts", ".tsx", ".js", ".jsx",
+        ".cpp", ".hpp", ".c", ".h", ".cc", ".cxx",
+        ".dart", ".go", ".kt", ".kts", ".pl", ".pm", ".php", ".rs", ".swift", ".html", ".htm"
     };
 
     private static readonly HashSet<string> BinaryExtensions = new(StringComparer.OrdinalIgnoreCase)

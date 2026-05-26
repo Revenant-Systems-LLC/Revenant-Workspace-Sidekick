@@ -4,7 +4,7 @@ using RevenantHardening.Rules;
 if (args.Length == 0 || args[0] is "--help" or "-h")
 {
     Console.WriteLine("""
-        RSH — Revenant Hardening Scanner v0.5
+        RSH — Revenant Hardening Scanner v0.68
         Audit your AI-coded Windows app before you ship it.
 
         Commands:
