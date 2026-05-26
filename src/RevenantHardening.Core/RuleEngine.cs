@@ -11,6 +11,7 @@ public static class RuleEngine
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var allFindings = new ConcurrentBag<Finding>();
         var filesScanned = 0;
+        var suppressedCount = 0;
 
         var files = FileWalker.Enumerate(root, options.Includes, options.Excludes).ToList();
 
@@ -27,7 +28,12 @@ public static class RuleEngine
                 try
                 {
                     foreach (var finding in rule.Analyze(file))
-                        allFindings.Add(finding);
+                    {
+                        if (SuppressionChecker.IsSuppressed(file.Content, finding))
+                            Interlocked.Increment(ref suppressedCount);
+                        else
+                            allFindings.Add(finding);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -55,6 +61,6 @@ public static class RuleEngine
 
         var (score, grade) = Scorer.Calculate(findings);
 
-        return new ScanResult(root, findings, score, grade, filesScanned, sw.Elapsed);
+        return new ScanResult(root, findings, score, grade, filesScanned, sw.Elapsed, suppressedCount);
     }
 }

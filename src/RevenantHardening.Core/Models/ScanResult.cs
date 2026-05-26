@@ -6,5 +6,6 @@ public sealed record ScanResult(
     int Score,
     char Grade,
     int FilesScanned,
-    TimeSpan Duration
+    TimeSpan Duration,
+    int SuppressedCount = 0
 );

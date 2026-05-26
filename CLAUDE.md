@@ -1,15 +1,15 @@
-# CLAUDE.md – Revenant Hardening (RSH) v0.1 → v0.2
+# CLAUDE.md – Revenant Hardening (RSH) v0.1 → v0.5
 
-You are working on **Revenant Hardening (RSH)**, a Windows‑focused security and deployment sanity scanner for **AI‑coded desktop apps**.
+You are working on **Revenant Hardening (RSH)**, a security and deployment sanity scanner for **AI‑coded apps** (supporting C#, Python, Java, and TypeScript/JavaScript).
 
 RSH is a **micro‑tool**, not a platform.
 
 - It scans a directory.
-- It detects a small set of **Windows‑specific hardening mistakes**.
+- It detects critical language-specific and infrastructure-specific security and hardening flaws.
 - It prints clean findings and a simple score/letter grade.
 - It outputs to **console**, **JSON**, and **HTML**.
 
-**v0.1 is complete** (17 rules, 95 tests). The next milestone is **v0.2**. Do **not** implement v0.2 features unless explicitly instructed.
+**v0.5 is complete**. The next language additions will continue sequentially.
 
 ---
 

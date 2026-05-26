@@ -70,6 +70,12 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         Console.ForegroundColor = GradeColor(result.Grade);
         output.WriteLine($"  Score : {result.Score}/100   Grade : {result.Grade}");
         Console.ForegroundColor = prev;
+        if (result.SuppressedCount > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            output.WriteLine($"  ({result.SuppressedCount} suppressed via rsh-suppress)");
+            Console.ForegroundColor = prev;
+        }
         output.WriteLine();
 
         void Count(Severity s)
