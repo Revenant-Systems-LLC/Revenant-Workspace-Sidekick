@@ -31,7 +31,7 @@ public sealed partial class PythonBadNamingRule : IRule
     public RuleMetadata Metadata { get; } = new(
         Id: "RSH-PY-018",
         Title: "Poor variable or class naming",
-        DefaultSeverity: Severity.Low,
+        DefaultSeverity: Severity.Info,
         FileExtensions: [".py"]
     );
 
@@ -49,11 +49,18 @@ public sealed partial class PythonBadNamingRule : IRule
             yield return new Finding(
                 RuleId: "RSH-PY-018",
                 Title: $"Single-letter variable name '{varName}'",
-                Severity: Severity.Low,
+                Severity: Severity.Info,
                 File: context.RelativePath,
                 Line: line,
                 Why: "Single-letter variable names (except loop counters i, j, k) make code hard to understand. A reader cannot tell what the variable represents.",
-                Fix: $"Give '{varName}' a descriptive name that explains its purpose (e.g., 'count', 'total', 'user_name')."
+                Fix: $"Give '{varName}' a descriptive name that explains its purpose (e.g., 'count', 'total', 'user_name').",
+                Example: $"""
+                    # Bad
+                    {varName} = 10
+                    
+                    # Good
+                    count = 10
+                    """
             );
         }
 

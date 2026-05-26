@@ -17,7 +17,7 @@ public sealed partial class PythonDeepNestingRule : IRule
     public RuleMetadata Metadata { get; } = new(
         Id: "RSH-PY-016",
         Title: "Deeply nested control flow",
-        DefaultSeverity: Severity.Medium,
+        DefaultSeverity: Severity.Info,
         FileExtensions: [".py"]
     );
 
@@ -47,11 +47,26 @@ public sealed partial class PythonDeepNestingRule : IRule
                     yield return new Finding(
                         RuleId: "RSH-PY-016",
                         Title: $"Control flow nested {depth + 1} levels deep",
-                        Severity: Severity.Medium,
+                        Severity: Severity.Info,
                         File: context.RelativePath,
                         Line: line,
                         Why: $"Code nested more than {MaxDepth} levels deep is hard to read and maintain. This is a sign the function is doing too much.",
-                        Fix: "Extract deeply nested logic into helper functions or use early returns (guard clauses) to reduce nesting."
+                        Fix: "Extract deeply nested logic into helper functions or use early returns (guard clauses) to reduce nesting.",
+                        Example: """
+                            # Bad
+                            if user:
+                                if user.is_active:
+                                    if user.has_subscription:
+                                        if not user.expired:
+                                            do_something()
+
+                            # Good (Guard Clauses)
+                            if not user or not user.is_active:
+                                return
+                            if not user.has_subscription or user.expired:
+                                return
+                            do_something()
+                            """
                     );
                 }
             }

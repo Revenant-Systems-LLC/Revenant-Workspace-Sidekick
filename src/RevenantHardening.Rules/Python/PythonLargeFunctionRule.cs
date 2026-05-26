@@ -15,7 +15,7 @@ public sealed partial class PythonLargeFunctionRule : IRule
     public RuleMetadata Metadata { get; } = new(
         Id: "RSH-PY-017",
         Title: "Function is too large",
-        DefaultSeverity: Severity.Medium,
+        DefaultSeverity: Severity.Info,
         FileExtensions: [".py"]
     );
 
@@ -56,11 +56,24 @@ public sealed partial class PythonLargeFunctionRule : IRule
                 yield return new Finding(
                     RuleId: "RSH-PY-017",
                     Title: $"Function '{funcName}()' is {bodyLines} lines long (max {MaxLines})",
-                    Severity: Severity.Medium,
+                    Severity: Severity.Info,
                     File: context.RelativePath,
                     Line: defLine,
                     Why: "Large functions are harder to understand, test, and debug. They usually violate the Single-Responsibility Principle.",
-                    Fix: $"Break '{funcName}()' into smaller helper functions, each doing one thing well."
+                    Fix: $"Break '{funcName}()' into smaller helper functions, each doing one thing well.",
+                    Example: """
+                        # Bad
+                        def process_data(data):
+                            # ... 50 lines of parsing ...
+                            # ... 50 lines of validation ...
+                            # ... 50 lines of saving ...
+                        
+                        # Good
+                        def process_data(data):
+                            parsed = parse_data(data)
+                            if validate(parsed):
+                                save_data(parsed)
+                        """
                 );
             }
         }

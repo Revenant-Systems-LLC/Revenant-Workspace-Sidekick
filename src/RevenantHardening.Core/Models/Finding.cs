@@ -7,5 +7,6 @@ public sealed record Finding(
     string File,
     int? Line,
     string Why,
-    string Fix
+    string Fix,
+    string? Example = null
 );

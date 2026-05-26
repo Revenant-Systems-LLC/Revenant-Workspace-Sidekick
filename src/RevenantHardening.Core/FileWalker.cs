@@ -40,30 +40,44 @@ public static class FileWalker
             foreach (var i in extraIncludes)
                 includeExtensions.Add(i);
 
+        if (File.Exists(root))
+        {
+            var ctx = CreateContext(root, root, includeExtensions);
+            if (ctx != null) yield return ctx;
+            yield break;
+        }
+
         foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
         {
             if (IsExcluded(file, root, excludeSegments))
                 continue;
 
-            var ext = System.IO.Path.GetExtension(file);
-            if (!includeExtensions.Contains(ext))
-                continue;
-
-            string content;
-            try
-            {
-                content = BinaryExtensions.Contains(ext)
-                    ? ExtractBinaryStrings(file)
-                    : File.ReadAllText(file);
-            }
-            catch
-            {
-                continue;
-            }
-
-            var relative = System.IO.Path.GetRelativePath(root, file);
-            yield return new FileContext(file, relative, content);
+            var ctx = CreateContext(file, root, includeExtensions);
+            if (ctx != null)
+                yield return ctx;
         }
+    }
+
+    private static FileContext? CreateContext(string file, string root, HashSet<string> includeExtensions)
+    {
+        var ext = System.IO.Path.GetExtension(file);
+        if (!includeExtensions.Contains(ext))
+            return null;
+
+        string content;
+        try
+        {
+            content = BinaryExtensions.Contains(ext)
+                ? ExtractBinaryStrings(file)
+                : File.ReadAllText(file);
+        }
+        catch
+        {
+            return null;
+        }
+
+        var relative = root == file ? System.IO.Path.GetFileName(file) : System.IO.Path.GetRelativePath(root, file);
+        return new FileContext(file, relative, content);
     }
 
     private static string ExtractBinaryStrings(string filePath, int minLen = 8)

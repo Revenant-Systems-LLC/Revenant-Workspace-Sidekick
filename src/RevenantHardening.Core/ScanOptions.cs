@@ -10,9 +10,10 @@ public sealed record ScanOptions(
     bool Roast,
     Severity MinSeverity,
     string[] Includes,
-    string[] Excludes
+    string[] Excludes,
+    bool StudentMode = false
 )
 {
     public static ScanOptions Default(string path) =>
-        new(path, "console", null, false, false, Severity.Low, [], []);
+        new(path, "console", null, false, false, Severity.Low, [], [], false);
 }

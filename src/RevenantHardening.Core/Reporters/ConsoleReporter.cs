@@ -2,7 +2,7 @@ using RevenantHardening.Core.Models;
 
 namespace RevenantHardening.Core.Reporters;
 
-public sealed class ConsoleReporter(bool roastMode = false) : IReporter
+public sealed class ConsoleReporter(bool roastMode = false, bool studentMode = false) : IReporter
 {
     public void Report(ScanResult result, TextWriter output)
     {
@@ -17,7 +17,7 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         if (result.Findings.Count == 0)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            output.WriteLine(roastMode
+            output.WriteLine(roastMode && !studentMode
                 ? "  No findings. Either you're genuinely good at this or your AI got lucky. Either way, don't get smug."
                 : "  No findings. Clean scan.");
             Console.ForegroundColor = prev;
@@ -26,7 +26,7 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         else
         {
             foreach (var finding in result.Findings)
-                WriteFinding(finding, output, prev);
+                WriteFinding(finding, output, prev, studentMode);
         }
 
         WriteSummary(result, output, prev);
@@ -41,7 +41,7 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         output.WriteLine();
     }
 
-    private static void WriteFinding(Finding finding, TextWriter output, ConsoleColor prev)
+    private static void WriteFinding(Finding finding, TextWriter output, ConsoleColor prev, bool studentMode)
     {
         Console.ForegroundColor = SeverityColor(finding.Severity);
         output.WriteLine($"[{finding.Severity.ToString().ToUpperInvariant()}] {finding.RuleId}  {finding.Title}");
@@ -53,6 +53,16 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         output.WriteLine();
         output.WriteLine("Fix:");
         output.WriteLine($"  {finding.Fix}");
+        
+        if (!string.IsNullOrWhiteSpace(finding.Example))
+        {
+            output.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            output.WriteLine("Example (Better Way):");
+            Console.ForegroundColor = prev;
+            output.WriteLine(finding.Example);
+        }
+        
         output.WriteLine();
         output.WriteLine("  " + new string('·', 50));
         output.WriteLine();
@@ -91,13 +101,14 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         Count(Severity.High);
         Count(Severity.Medium);
         Count(Severity.Low);
+        Count(Severity.Info);
 
         output.WriteLine();
-        WriteRoast(result, output, roastMode);
+        WriteRoast(result, output, roastMode, studentMode);
         output.WriteLine();
     }
 
-    private static void WriteRoast(ScanResult result, TextWriter output, bool hard)
+    private static void WriteRoast(ScanResult result, TextWriter output, bool hard, bool student)
     {
         var msg = hard
             ? result.Grade switch
@@ -106,15 +117,17 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
                 'B' => "B. Solid work. Still wouldn't trust this on a network that matters, but you're not the worst vibe-coder I've seen today.",
                 'C' => "C. Your AI wrote this. You can tell because it works in demos and falls apart under any real threat model.",
                 'D' => "D. This app is one misconfigured registry key away from becoming a conference talk case study.",
-                _ => "F. This isn't a security audit. This is an incident report for something that hasn't happened yet."
+                _ => student 
+                    ? "F. This isn't a homework submission. This is an incident report. Do not turn this in." 
+                    : "F. This isn't a security audit. This is an incident report for something that hasn't happened yet."
             }
             : result.Grade switch
             {
-                'A' => "Clean build. Ship it.",
-                'B' => "A few rough edges. Worth a look before release.",
-                'C' => "Some real issues here. Don't ship without addressing the highs.",
-                'D' => "Significant findings. This needs work before it goes anywhere near production.",
-                _ => "Do not ship this."
+                'A' => student ? "Clean build. Ready to turn in." : "Clean build. Ship it.",
+                'B' => student ? "A few rough edges. Worth a look before you turn it in." : "A few rough edges. Worth a look before release.",
+                'C' => student ? "Some real issues here. Don't turn this in without addressing the highs." : "Some real issues here. Don't ship without addressing the highs.",
+                'D' => student ? "Significant findings. This needs work before you submit it." : "Significant findings. This needs work before it goes anywhere near production.",
+                _ => student ? "Do not turn this in." : "Do not ship this."
             };
         output.WriteLine($"  {msg}");
     }
@@ -125,6 +138,7 @@ public sealed class ConsoleReporter(bool roastMode = false) : IReporter
         Severity.High => ConsoleColor.DarkYellow,
         Severity.Medium => ConsoleColor.Yellow,
         Severity.Low => ConsoleColor.Gray,
+        Severity.Info => ConsoleColor.Cyan,
         _ => ConsoleColor.White
     };
 

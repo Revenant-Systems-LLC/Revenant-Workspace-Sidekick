@@ -12,7 +12,7 @@ public static class ScanCommand
         if (options is null)
             return 1;
 
-        if (!Directory.Exists(options.ScanPath))
+        if (!Directory.Exists(options.ScanPath) && !File.Exists(options.ScanPath))
         {
             Console.Error.WriteLine($"Error: path does not exist: {options.ScanPath}");
             return 1;
@@ -24,7 +24,7 @@ public static class ScanCommand
         {
             "json" => new JsonReporter(),
             "html" => new HtmlReporter(),
-            _ => new ConsoleReporter(options.Roast)
+            _ => new ConsoleReporter(options.Roast, options.StudentMode)
         };
 
         if (options.OutputFile is not null)
@@ -47,6 +47,7 @@ public static class ScanCommand
         string? outputFile = null;
         var offline = false;
         var roast = false;
+        var studentMode = false;
         var minSeverity = Severity.Low;
         var includes = new List<string>();
         var excludes = new List<string>();
@@ -69,6 +70,11 @@ public static class ScanCommand
                 case "--roast":
                     roast = true;
                     break;
+                case "--student":
+                    studentMode = true;
+                    if (minSeverity > Severity.Info)
+                        minSeverity = Severity.Info;
+                    break;
                 case "--format" when i + 1 < args.Length:
                     format = args[++i];
                     break;
@@ -78,7 +84,7 @@ public static class ScanCommand
                 case "--severity" when i + 1 < args.Length:
                     if (!TryParseSeverity(args[++i], out minSeverity))
                     {
-                        Console.Error.WriteLine($"Error: unknown severity '{args[i]}'. Use: low, medium, high, critical");
+                        Console.Error.WriteLine($"Error: unknown severity '{args[i]}'. Use: info, low, medium, high, critical");
                         return null;
                     }
                     break;
@@ -98,7 +104,7 @@ public static class ScanCommand
         _ = offline; // reserved for future use
 
         return new ScanOptions(path, format, outputFile, offline, roast, minSeverity,
-            [.. includes], [.. excludes]);
+            [.. includes], [.. excludes], studentMode);
     }
 
     private static bool TryParseSeverity(string value, out Severity severity)
