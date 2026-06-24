@@ -43,6 +43,7 @@ public sealed class HtmlReporter : IReporter
         sb.AppendLine("  <span class=\"RWS-footer__motto\">Built to outlive.</span>");
         sb.AppendLine("</footer>");
 
+        sb.AppendLine(InteractiveJs());
         sb.AppendLine("</body>");
         sb.AppendLine("</html>");
 
@@ -88,26 +89,58 @@ public sealed class HtmlReporter : IReporter
             return;
         }
 
+        // Interactive toolbar: filter by severity + search
+        sb.AppendLine("<div class=\"findings-toolbar\">");
+        sb.AppendLine("  <div class=\"filter-btns\">");
+        sb.AppendLine("    <span class=\"filter-label\">Filter:</span>");
+        sb.AppendLine("    <button class=\"filter-btn active\" data-sev=\"all\" onclick=\"filterFindings('all')\">All</button>");
+        foreach (var sev in new[] { Severity.Critical, Severity.High, Severity.Medium, Severity.Low, Severity.Info })
+        {
+            var sevClass = sev.ToString().ToLowerInvariant();
+            var count = result.Findings.Count(f => f.Severity == sev);
+            if (count > 0)
+                sb.AppendLine($"    <button class=\"filter-btn badge-{sevClass}\" data-sev=\"{sevClass}\" onclick=\"filterFindings('{sevClass}')\">{sev} ({count})</button>");
+        }
+        sb.AppendLine("  </div>");
+        sb.AppendLine("  <input class=\"search-box\" type=\"search\" placeholder=\"Search findings...\" oninput=\"searchFindings(this.value)\" />");
+        sb.AppendLine("</div>");
+
         sb.AppendLine("<h2>Findings</h2>");
+        sb.AppendLine("<div id=\"findings-list\">");
 
         foreach (var finding in result.Findings)
         {
             var sevClass = finding.Severity.ToString().ToLowerInvariant();
-            sb.AppendLine($"<div class=\"finding finding-{sevClass}\">");
-            sb.AppendLine("  <div class=\"finding-header\">");
+            var findingId = $"f{Math.Abs(finding.GetHashCode())}";
+            sb.AppendLine($"<div class=\"finding finding-{sevClass}\" data-severity=\"{sevClass}\" data-rule=\"{WebUtility.HtmlEncode(finding.RuleId)}\" data-searchtext=\"{WebUtility.HtmlEncode((finding.Title + " " + finding.File + " " + finding.RuleId + " " + finding.Why).ToLowerInvariant())}\">");
+            sb.AppendLine($"  <div class=\"finding-header\" onclick=\"toggleFinding('{findingId}')\" style=\"cursor:pointer\">");
             sb.AppendLine($"    <span class=\"badge badge-{sevClass}\">{finding.Severity.ToString().ToUpperInvariant()}</span>");
             sb.AppendLine($"    <span class=\"rule-id\">{WebUtility.HtmlEncode(finding.RuleId)}</span>");
             sb.AppendLine($"    <span class=\"rule-title\">{WebUtility.HtmlEncode(finding.Title)}</span>");
+            if (finding.Verified == true)
+                sb.AppendLine("    <span class=\"badge\" style=\"background:#c0392b;margin-left:6px\">VERIFIED LIVE</span>");
+            else if (finding.Verified == false)
+                sb.AppendLine("    <span class=\"badge\" style=\"background:#555;margin-left:6px\">revoked</span>");
+            if (finding.FromHistory)
+                sb.AppendLine("    <span class=\"badge\" style=\"background:#6e3dc7;margin-left:6px\">GIT HISTORY</span>");
+            sb.AppendLine("    <span class=\"collapse-arrow\">&#9660;</span>");
             sb.AppendLine("  </div>");
-            sb.AppendLine($"  <p class=\"finding-file\">&#128196; {WebUtility.HtmlEncode(finding.File)}{(finding.Line.HasValue ? $":{finding.Line}" : "")}</p>");
-            sb.AppendLine("  <div class=\"finding-body\">");
-            sb.AppendLine($"    <p><strong>Why this matters:</strong> {WebUtility.HtmlEncode(finding.Why)}</p>");
-            sb.AppendLine($"    <p><strong>Fix:</strong> {WebUtility.HtmlEncode(finding.Fix)}</p>");
+            sb.AppendLine($"  <div class=\"finding-collapsible\" id=\"{findingId}\">");
+            sb.AppendLine($"    <p class=\"finding-file\">&#128196; {WebUtility.HtmlEncode(finding.File)}{(finding.Line.HasValue ? $":{finding.Line}" : "")}</p>");
+            sb.AppendLine("    <div class=\"finding-body\">");
+            sb.AppendLine($"      <p><strong>Why this matters:</strong> {WebUtility.HtmlEncode(finding.Why)}</p>");
+            sb.AppendLine($"      <div class=\"fix-block\"><p><strong>Fix:</strong> {WebUtility.HtmlEncode(finding.Fix)}</p>");
+            sb.AppendLine($"      <button class=\"copy-btn\" onclick=\"copyText('{WebUtility.HtmlEncode(finding.Fix.Replace("'", "\\'"))}', this)\">Copy fix</button></div>");
             if (!string.IsNullOrWhiteSpace(finding.RedactedSnippet))
-                sb.AppendLine($"    <p class=\"redacted-snippet\"><strong>Matched (blinded):</strong> <code>{WebUtility.HtmlEncode(finding.RedactedSnippet)}</code></p>");
+                sb.AppendLine($"      <p class=\"redacted-snippet\"><strong>Matched (blinded):</strong> <code>{WebUtility.HtmlEncode(finding.RedactedSnippet)}</code></p>");
+            if (!string.IsNullOrWhiteSpace(finding.Example))
+                sb.AppendLine($"      <pre class=\"example-block\">{WebUtility.HtmlEncode(finding.Example)}</pre>");
+            sb.AppendLine("    </div>");
             sb.AppendLine("  </div>");
             sb.AppendLine("</div>");
         }
+
+        sb.AppendLine("</div>"); // findings-list
     }
 
     private static string Css() => """
@@ -281,7 +314,58 @@ public sealed class HtmlReporter : IReporter
             margin: 2rem auto 0;
         }
         .RWS-footer__motto { color: #b8960a; font-style: italic; }
+        /* Interactive features */
+        .findings-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; margin:1rem 0 1.2rem; }
+        .filter-label { color:#888; font-size:0.85rem; }
+        .filter-btn { border:none; border-radius:4px; padding:0.3rem 0.7rem; cursor:pointer; font-size:0.8rem; background:#333; color:#ccc; transition:opacity 0.15s; }
+        .filter-btn.active { outline:2px solid #b8960a; }
+        .filter-btn[data-sev="all"].active { background:#555; }
+        .search-box { flex:1; min-width:160px; max-width:320px; padding:0.35rem 0.6rem; border-radius:4px; border:1px solid #444; background:#1a1a1a; color:#e0d8c8; font-size:0.85rem; }
+        .finding-header .collapse-arrow { margin-left:auto; color:#888; font-size:0.75rem; transition:transform 0.2s; }
+        .finding-header { display:flex; align-items:center; flex-wrap:wrap; gap:0.4rem; }
+        .finding-collapsible { overflow:hidden; transition:max-height 0.25s ease; max-height:2000px; }
+        .finding-collapsible.collapsed { max-height:0; }
+        .fix-block { display:flex; align-items:flex-start; gap:0.5rem; flex-wrap:wrap; }
+        .copy-btn { border:none; border-radius:3px; padding:0.2rem 0.5rem; cursor:pointer; font-size:0.75rem; background:#444; color:#ccc; white-space:nowrap; }
+        .copy-btn:hover { background:#666; }
+        .example-block { background:#111; border:1px solid #333; border-radius:4px; padding:0.6rem; font-size:0.78rem; color:#a0c878; overflow-x:auto; white-space:pre-wrap; }
+        .finding[style*="display:none"] { display:none!important; }
         </style>
+        """;
+
+    private static string InteractiveJs() => """
+        <script>
+        function filterFindings(sev) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`.filter-btn[data-sev="${sev}"]`);
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('#findings-list .finding').forEach(el => {
+                const match = sev === 'all' || el.dataset.severity === sev;
+                el.style.display = match ? '' : 'none';
+            });
+        }
+        function searchFindings(query) {
+            const q = query.trim().toLowerCase();
+            document.querySelectorAll('#findings-list .finding').forEach(el => {
+                const text = el.dataset.searchtext || '';
+                el.style.display = !q || text.includes(q) ? '' : 'none';
+            });
+        }
+        function toggleFinding(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('collapsed');
+            const arrow = el.previousElementSibling?.querySelector('.collapse-arrow');
+            if (arrow) arrow.style.transform = el.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+        }
+        function copyText(text, btn) {
+            navigator.clipboard?.writeText(text).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
+        </script>
         """;
 }
 

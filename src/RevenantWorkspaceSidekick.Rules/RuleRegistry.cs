@@ -45,6 +45,7 @@ public static class RuleRegistry
         new AssemblyLoadRule(),
         new UriHandlerRule(),
         new ProcessStartInterpolationRule(),
+        new TaintedProcessStartRule(),
 
         // RWS-SEC-*
         new ApiKeyPatternRule(),

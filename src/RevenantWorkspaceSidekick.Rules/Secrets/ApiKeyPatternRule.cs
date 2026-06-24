@@ -43,10 +43,6 @@ public sealed partial class ApiKeyPatternRule : IRule
         (BearerTokenPattern(), "Bearer token"),
     ];
 
-    private static readonly char[] ValidTokenChars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_."u8
-            .ToArray().Select(b => (char)b).ToArray();
-
     public RuleMetadata Metadata { get; } = new(
         Id: "RWS-SEC-001",
         Title: "Hardcoded API key/token pattern",
@@ -85,7 +81,8 @@ public sealed partial class ApiKeyPatternRule : IRule
                 Line: line,
                 Why: "Hardcoded credentials in source files are frequently committed to version control and exposed in build artifacts. AI assistants commonly generate placeholder secrets that developers forget to replace.",
                 Fix: "Move this secret to an environment variable, user secrets (dotnet user-secrets), or a secrets manager. Never commit credentials to source control.",
-                RedactedSnippet: SecretBlinder.Blind(matchedValue)
+                RedactedSnippet: SecretBlinder.Blind(matchedValue),
+                RawValue: matchedValue
             );
         }
 
@@ -107,7 +104,33 @@ public sealed partial class ApiKeyPatternRule : IRule
                 );
             }
         }
+
+        // --- Pass 3: Shannon entropy — catch secrets with no known prefix ---
+        // Scan for quoted string literals; flag any with entropy ≥ 4.5 bpc.
+        // This catches tokens from new/unknown providers that lack a literal prefix.
+        foreach (Match match in QuotedStringPattern().Matches(context.Content))
+        {
+            var value = match.Groups["val"].Value;
+            if (value.Length < 20 || value.Length > 200) continue;
+            if (!EntropyScorer.IsHighEntropy(value)) continue;
+
+            // Skip values already caught by Pass 1 or Pass 2 on the same line
+            var line = GetLineNumber(context.Content, match.Index);
+            yield return new Finding(
+                RuleId: "RWS-SEC-001",
+                Title: "High-entropy string detected (possible secret)",
+                Severity: Severity.High,
+                File: context.RelativePath,
+                Line: line,
+                Why: $"This string has Shannon entropy {EntropyScorer.Shannon(value):F2} bpc — statistically consistent with a randomly-generated token or key. AI-generated code often includes placeholder secrets copied from documentation.",
+                Fix: "Verify this is not a hardcoded credential. If it is, move it to environment variables or a secrets manager.",
+                RedactedSnippet: SecretBlinder.Blind(value)
+            );
+        }
     }
+
+    [GeneratedRegex(@"""(?<val>[A-Za-z0-9+/=\-_\.~]{20,200})""")]
+    private static partial Regex QuotedStringPattern();
 
     private static int GetLineNumber(string content, int charIndex)
     {
