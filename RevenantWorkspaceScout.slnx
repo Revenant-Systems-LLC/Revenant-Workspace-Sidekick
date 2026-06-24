@@ -1,0 +1,10 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RevenantWorkspaceScout.Cli/RevenantWorkspaceScout.Cli.csproj" />
+    <Project Path="src/RevenantWorkspaceScout.Core/RevenantWorkspaceScout.Core.csproj" />
+    <Project Path="src/RevenantWorkspaceScout.Rules/RevenantWorkspaceScout.Rules.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RevenantWorkspaceScout.Tests/RevenantWorkspaceScout.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,4 +1,4 @@
-{
+﻿{
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v10.0",
     "signature": ""
@@ -6,13 +6,13 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "rsh/1.0.0": {
+      "rws/1.0.0": {
         "dependencies": {
-          "RevenantHardening.Core": "1.0.0",
-          "RevenantHardening.Rules": "1.0.0"
+          "RevenantWorkspaceScout.Core": "1.0.0",
+          "RevenantWorkspaceScout.Rules": "1.0.0"
         },
         "runtime": {
-          "rsh.dll": {}
+          "rws.dll": {}
         }
       },
       "Microsoft.CodeAnalysis.Common/4.14.0": {
@@ -116,21 +116,21 @@
           }
         }
       },
-      "RevenantHardening.Core/1.0.0": {
+      "RevenantWorkspaceScout.Core/1.0.0": {
         "runtime": {
-          "RevenantHardening.Core.dll": {
+          "RevenantWorkspaceScout.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "RevenantHardening.Rules/1.0.0": {
+      "RevenantWorkspaceScout.Rules/1.0.0": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp": "4.14.0",
-          "RevenantHardening.Core": "1.0.0"
+          "RevenantWorkspaceScout.Core": "1.0.0"
         },
         "runtime": {
-          "RevenantHardening.Rules.dll": {
+          "RevenantWorkspaceScout.Rules.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -139,7 +139,7 @@
     }
   },
   "libraries": {
-    "rsh/1.0.0": {
+    "rws/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -158,12 +158,12 @@
       "path": "microsoft.codeanalysis.csharp/4.14.0",
       "hashPath": "microsoft.codeanalysis.csharp.4.14.0.nupkg.sha512"
     },
-    "RevenantHardening.Core/1.0.0": {
+    "RevenantWorkspaceScout.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "RevenantHardening.Rules/1.0.0": {
+    "RevenantWorkspaceScout.Rules/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
