@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>rws</AssemblyName>
+    <RootNamespace>RevenantWorkspaceSidekick.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RevenantWorkspaceSidekick.Core\RevenantWorkspaceSidekick.Core.csproj" />
+    <ProjectReference Include="..\RevenantWorkspaceSidekick.Rules\RevenantWorkspaceSidekick.Rules.csproj" />
+  </ItemGroup>
+</Project>

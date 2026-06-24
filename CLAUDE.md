@@ -1,6 +1,6 @@
-﻿# CLAUDE.md – Revenant Workspace Scout (rws) v0.1 → v0.5
+﻿# CLAUDE.md – Revenant Workspace Sidekick (rws) v0.1 → v0.5
 
-You are working on **Revenant Workspace Scout (rws)**, a security and deployment sanity scanner for **AI‑coded apps** (supporting C#, Python, Java, and TypeScript/JavaScript).
+You are working on **Revenant Workspace Sidekick (rws)**, a security and deployment sanity scanner for **AI‑coded apps** (supporting C#, Python, Java, and TypeScript/JavaScript).
 
 rws is a **micro‑tool**, not a platform.
 
@@ -64,35 +64,35 @@ Stronger version:
 
 Projects:
 
-- `RevenantWorkspaceScout.Cli`
+- `RevenantWorkspaceSidekick.Cli`
   - Console entry point.
   - Command routing (`rws scan`).
   - Argument parsing and configuration.
   - Chooses reporters (console/json/html).
 
-- `RevenantWorkspaceScout.Core`
+- `RevenantWorkspaceSidekick.Core`
   - File walker (include/exclude globs).
   - Rule engine and result aggregation.
   - Common models (`Finding`, `Severity`, `RuleMetadata`, etc.).
   - Scoring/letter‑grade logic.
 
-- `RevenantWorkspaceScout.Rules`
+- `RevenantWorkspaceSidekick.Rules`
   - Implementations of rule groups:
     - `RWS-MSIX-*`
     - `RWS-REG-*`
     - `RWS-EXEC-*`
     - `RWS-SEC-*`
 
-- `RevenantWorkspaceScout.Tests`
+- `RevenantWorkspaceSidekick.Tests`
   - Unit tests for rules and scoring.
   - Integration tests for `rws scan` over synthetic sample projects.
 
 **Folder structure (example)**
 
-- `/src/RevenantWorkspaceScout.Cli/`
-- `/src/RevenantWorkspaceScout.Core/`
-- `/src/RevenantWorkspaceScout.Rules/`
-- `/tests/RevenantWorkspaceScout.Tests/`
+- `/src/RevenantWorkspaceSidekick.Cli/`
+- `/src/RevenantWorkspaceSidekick.Core/`
+- `/src/RevenantWorkspaceSidekick.Rules/`
+- `/tests/RevenantWorkspaceSidekick.Tests/`
 - `/tests/fixtures/` – small synthetic projects that intentionally trigger rules.
 
 Ask before deviating significantly from this structure.

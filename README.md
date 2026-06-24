@@ -1,4 +1,4 @@
-﻿# rws – Revenant Workspace Scout
+﻿# rws – Revenant Workspace Sidekick
 
 You vibe‑coded a Windows app. rws is the sanity scanner that makes sure you don’t ship it with a backdoor, a bad manifest, or a stupid registry write.
 

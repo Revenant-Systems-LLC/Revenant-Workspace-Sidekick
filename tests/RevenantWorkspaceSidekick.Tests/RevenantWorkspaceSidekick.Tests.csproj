@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RevenantWorkspaceSidekick.Core\RevenantWorkspaceSidekick.Core.csproj" />
+    <ProjectReference Include="..\..\src\RevenantWorkspaceSidekick.Rules\RevenantWorkspaceSidekick.Rules.csproj" />
+    <PackageReference Include="xunit" Version="2.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\fixtures\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="fixtures\" />
+  </ItemGroup>
+</Project>

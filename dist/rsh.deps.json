@@ -8,8 +8,8 @@
     ".NETCoreApp,Version=v10.0": {
       "rws/1.0.0": {
         "dependencies": {
-          "RevenantWorkspaceScout.Core": "1.0.0",
-          "RevenantWorkspaceScout.Rules": "1.0.0"
+          "RevenantWorkspaceSidekick.Core": "1.0.0",
+          "RevenantWorkspaceSidekick.Rules": "1.0.0"
         },
         "runtime": {
           "rws.dll": {}
@@ -116,21 +116,21 @@
           }
         }
       },
-      "RevenantWorkspaceScout.Core/1.0.0": {
+      "RevenantWorkspaceSidekick.Core/1.0.0": {
         "runtime": {
-          "RevenantWorkspaceScout.Core.dll": {
+          "RevenantWorkspaceSidekick.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "RevenantWorkspaceScout.Rules/1.0.0": {
+      "RevenantWorkspaceSidekick.Rules/1.0.0": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp": "4.14.0",
-          "RevenantWorkspaceScout.Core": "1.0.0"
+          "RevenantWorkspaceSidekick.Core": "1.0.0"
         },
         "runtime": {
-          "RevenantWorkspaceScout.Rules.dll": {
+          "RevenantWorkspaceSidekick.Rules.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -158,12 +158,12 @@
       "path": "microsoft.codeanalysis.csharp/4.14.0",
       "hashPath": "microsoft.codeanalysis.csharp.4.14.0.nupkg.sha512"
     },
-    "RevenantWorkspaceScout.Core/1.0.0": {
+    "RevenantWorkspaceSidekick.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "RevenantWorkspaceScout.Rules/1.0.0": {
+    "RevenantWorkspaceSidekick.Rules/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
