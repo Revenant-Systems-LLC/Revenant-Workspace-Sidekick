@@ -17,9 +17,15 @@ public static class RuleEngine
         IEnumerable<FileContext> files;
         if (options.DiffOnly && GitHelper.IsGitRepo(root))
         {
-            var changedPaths = GitHelper.GetChangedFiles(root).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // git reports paths relative to the repo root, not the scan root.
+            // Resolve them to absolute paths so subdirectory scans match correctly
+            // (e.g. scanning `src/` while git reports `src/foo.cs` from repo root).
+            var repoRoot = GitHelper.GetRepoRoot(root) ?? root;
+            var changedAbsolute = GitHelper.GetChangedFiles(root)
+                .Select(p => System.IO.Path.GetFullPath(System.IO.Path.Combine(repoRoot, p)))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             files = FileWalker.Enumerate(root, options.Includes, options.Excludes)
-                .Where(f => changedPaths.Contains(f.RelativePath) || changedPaths.Contains(f.Path));
+                .Where(f => changedAbsolute.Contains(System.IO.Path.GetFullPath(f.Path)));
         }
         else
         {

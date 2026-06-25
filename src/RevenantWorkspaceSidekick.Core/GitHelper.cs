@@ -25,9 +25,9 @@ public static class GitHelper
     /// </summary>
     public static IEnumerable<(string RelativePath, string Content)> GetHistoricalBlobs(string root, int depth = 100)
     {
-        // Get unified diff of the last N commits, then extract added hunks only.
-        // We only care about lines that were added (+ lines); those could be secrets.
-        var log = Run(root, $"log -p --no-merges -n {depth} --diff-filter=A --unified=0");
+        // --diff-filter=AM: include Added files AND Modified files so secrets added
+        // to an existing file and later removed are not missed (the common real-world case).
+        var log = Run(root, $"log -p --no-merges -n {depth} --diff-filter=AM --unified=0");
         if (string.IsNullOrWhiteSpace(log)) yield break;
 
         string? currentFile = null;
@@ -61,11 +61,25 @@ public static class GitHelper
 
     public static bool IsGitRepo(string root)
     {
-        try { Run(root, "rev-parse --git-dir"); return true; }
+        try { return RunWithExitCode(root, "rev-parse --git-dir").ExitCode == 0; }
         catch { return false; }
     }
 
-    private static string Run(string root, string arguments)
+    /// <summary>Returns the absolute path of the repo root, or null if not in a git repo.</summary>
+    public static string? GetRepoRoot(string root)
+    {
+        try
+        {
+            var (stdout, exitCode) = RunWithExitCode(root, "rev-parse --show-toplevel");
+            return exitCode == 0 ? stdout.Trim() : null;
+        }
+        catch { return null; }
+    }
+
+    private static string Run(string root, string arguments) =>
+        RunWithExitCode(root, arguments).Stdout;
+
+    private static (string Stdout, int ExitCode) RunWithExitCode(string root, string arguments)
     {
         var psi = new ProcessStartInfo("git", arguments)
         {
@@ -78,6 +92,6 @@ public static class GitHelper
         using var proc = Process.Start(psi)!;
         var stdout = proc.StandardOutput.ReadToEnd();
         proc.WaitForExit();
-        return stdout;
+        return (stdout, proc.ExitCode);
     }
 }
