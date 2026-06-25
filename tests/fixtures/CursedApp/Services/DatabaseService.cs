@@ -1,8 +1,8 @@
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 
 namespace CursedApp.Services;
 
-// RSH-SEC-004: hardcoded connection string with password in source code
+// RWS-SEC-004: hardcoded connection string with password in source code
 public class DatabaseService
 {
     private const string ConnectionString =

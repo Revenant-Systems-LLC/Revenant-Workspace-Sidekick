@@ -1,10 +1,10 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 
 namespace CursedApp.Services;
 
-// RSH-REG-001: Registry.LocalMachine access
-// RSH-REG-002: OpenSubKey with writable: true
-// RSH-REG-003: HKLM write with no elevation guard
+// RWS-REG-001: Registry.LocalMachine access
+// RWS-REG-002: OpenSubKey with writable: true
+// RWS-REG-003: HKLM write with no elevation guard
 public class RegistryService
 {
     public void WriteAppSetting(string key, string value)
@@ -28,7 +28,7 @@ public class RegistryService
 
     public void FixPermissions()
     {
-        // RSH-REG-004: SetAccessControl on HKLM key
+        // RWS-REG-004: SetAccessControl on HKLM key
         using var hklm = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\CursedApp", true);
         var acl = hklm?.GetAccessControl();
         if (acl is not null)

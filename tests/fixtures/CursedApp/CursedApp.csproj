@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <!-- RSH-SEC-003: hardcoded token in project metadata -->
+    <!-- RWS-SEC-003: hardcoded token in project metadata -->
     <DeployApiToken>ghp_AAAABBBBCCCCDDDDEEEEFFFFGGGG12345678</DeployApiToken>
     <BuildServerPassword>hunter2Supersecret!</BuildServerPassword>
   </PropertyGroup>

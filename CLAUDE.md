@@ -1,8 +1,8 @@
-# CLAUDE.md – Revenant Hardening (RSH) v0.1 → v0.5
+﻿# CLAUDE.md – Revenant Workspace Sidekick (rws) v0.1 → v0.5
 
-You are working on **Revenant Hardening (RSH)**, a security and deployment sanity scanner for **AI‑coded apps** (supporting C#, Python, Java, and TypeScript/JavaScript).
+You are working on **Revenant Workspace Sidekick (rws)**, a security and deployment sanity scanner for **AI‑coded apps** (supporting C#, Python, Java, and TypeScript/JavaScript).
 
-RSH is a **micro‑tool**, not a platform.
+rws is a **micro‑tool**, not a platform.
 
 - It scans a directory.
 - It detects critical language-specific and infrastructure-specific security and hardening flaws.
@@ -28,7 +28,7 @@ Stronger version:
 - Solo/indie devs using AI assistants (Claude Code, Cursor, Copilot, etc.) to build WPF/WinUI/MSIX desktop apps for Windows.
 - Small teams shipping internal desktop utilities.
 
-**What RSH v0.1 does**
+**What rws v0.1 does**
 
 - Scans **Windows desktop app** projects (WPF/WinUI/MSIX/.NET).
 - Audits:
@@ -37,7 +37,7 @@ Stronger version:
   - Dangerous process/assembly loading patterns.
   - Embedded secrets in common .NET project surfaces.
 
-**What RSH v0.1 does NOT do (reserved for v0.2)**
+**What rws v0.1 does NOT do (reserved for v0.2)**
 
 - XAML injection pattern detection.
 - Deep P/Invoke / marshaling analysis.
@@ -64,35 +64,35 @@ Stronger version:
 
 Projects:
 
-- `RevenantHardening.Cli`
+- `RevenantWorkspaceSidekick.Cli`
   - Console entry point.
-  - Command routing (`RSH scan`).
+  - Command routing (`rws scan`).
   - Argument parsing and configuration.
   - Chooses reporters (console/json/html).
 
-- `RevenantHardening.Core`
+- `RevenantWorkspaceSidekick.Core`
   - File walker (include/exclude globs).
   - Rule engine and result aggregation.
   - Common models (`Finding`, `Severity`, `RuleMetadata`, etc.).
   - Scoring/letter‑grade logic.
 
-- `RevenantHardening.Rules`
+- `RevenantWorkspaceSidekick.Rules`
   - Implementations of rule groups:
-    - `RSH-MSIX-*`
-    - `RSH-REG-*`
-    - `RSH-EXEC-*`
-    - `RSH-SEC-*`
+    - `RWS-MSIX-*`
+    - `RWS-REG-*`
+    - `RWS-EXEC-*`
+    - `RWS-SEC-*`
 
-- `RevenantHardening.Tests`
+- `RevenantWorkspaceSidekick.Tests`
   - Unit tests for rules and scoring.
-  - Integration tests for `RSH scan` over synthetic sample projects.
+  - Integration tests for `rws scan` over synthetic sample projects.
 
 **Folder structure (example)**
 
-- `/src/RevenantHardening.Cli/`
-- `/src/RevenantHardening.Core/`
-- `/src/RevenantHardening.Rules/`
-- `/tests/RevenantHardening.Tests/`
+- `/src/RevenantWorkspaceSidekick.Cli/`
+- `/src/RevenantWorkspaceSidekick.Core/`
+- `/src/RevenantWorkspaceSidekick.Rules/`
+- `/tests/RevenantWorkspaceSidekick.Tests/`
 - `/tests/fixtures/` – small synthetic projects that intentionally trigger rules.
 
 Ask before deviating significantly from this structure.
@@ -101,7 +101,7 @@ Ask before deviating significantly from this structure.
 
 ## 3. v0.1 scope – rule groups and surfaces
 
-RSH v0.1 implements **four** rule groups with **17** rules total.
+rws v0.1 implements **four** rule groups with **17** rules total.
 
 ### 3.1 File types and surfaces to scan
 
@@ -124,80 +124,80 @@ Allow overrides via `--include` and `--exclude` globs.
 
 ### 3.2 Rule groups
 
-#### A. MSIX / manifest audit – `RSH-MSIX-*`
+#### A. MSIX / manifest audit – `RWS-MSIX-*`
 
 Goal: catch **over‑broad or obviously unsafe MSIX settings**.
 
 Initial rules:
 
-- `RSH-MSIX-001` — Over‑broad package capability
+- `RWS-MSIX-001` — Over‑broad package capability
   - Detect suspicious or overly broad capabilities (e.g., capabilities that are rarely needed for typical WPF/WinUI apps).
   - Examples: capabilities granting broad system access when the project appears to be a simple desktop utility.
 
-- `RSH-MSIX-002` — `runFullTrust` enabled
+- `RWS-MSIX-002` — `runFullTrust` enabled
   - Flag manifests with `runFullTrust` set when it is unnecessary or not clearly justified.
 
-- `RSH-MSIX-003` — Suspicious test/debug signing artifact
+- `RWS-MSIX-003` — Suspicious test/debug signing artifact
   - Detect obvious test/debug certs, sideload‑only hints, or mismatched publisher IDs that suggest debug packaging leaking to prod.
 
-- `RSH-MSIX-004` — Custom URI protocol in manifest
+- `RWS-MSIX-004` — Custom URI protocol in manifest
   - Detect `<uap:Protocol>` registration in `Package.appxmanifest`. Any custom URI scheme creates an external invocation surface; flag for argument‑validation review.
 
-#### B. Registry + elevation audit – `RSH-REG-*`
+#### B. Registry + elevation audit – `RWS-REG-*`
 
 Goal: detect **unsafe registry writes and elevation assumptions**.
 
 Initial rules:
 
-- `RSH-REG-001` — HKLM write detected
+- `RWS-REG-001` — HKLM write detected
   - Detect writes to `HKLM` or `HKCR` (e.g., `Registry.LocalMachine`, `Registry.ClassesRoot`) from regular application flows.
 
-- `RSH-REG-002` — Writable registry handle against protected hive
+- `RWS-REG-002` — Writable registry handle against protected hive
   - Detect use of `RegistryKey.OpenSubKey(..., writable: true)` or equivalent against protected hives.
 
-- `RSH-REG-003` — Elevation‑sensitive write without elevation guard
+- `RWS-REG-003` — Elevation‑sensitive write without elevation guard
   - Detect registry writes to protected locations where there is **no clear elevation check** or manifest alignment (e.g., code assumes elevation that may not exist).
 
-- `RSH-REG-004` — `RegistryKey.SetAccessControl` on protected hive
+- `RWS-REG-004` — `RegistryKey.SetAccessControl` on protected hive
   - Detect calls to `SetAccessControl` on HKLM/HKCR keys. AI‑generated code often calls this to "fix" access‑denied errors without understanding the privilege‑escalation risk.
 
-#### C. Dangerous execution / load audit – `RSH-EXEC-*`
+#### C. Dangerous execution / load audit – `RWS-EXEC-*`
 
 Goal: catch **process launches and assembly loads using user‑influenced input or risky settings**.
 
 Initial rules:
 
-- `RSH-EXEC-001` — `Process.Start` with user‑derived input
+- `RWS-EXEC-001` — `Process.Start` with user‑derived input
   - `Process.Start(...)` where the executable or arguments are derived from user‑influenced data (CLI args, environment vars, config, UI input, etc.).
 
-- `RSH-EXEC-002` — `UseShellExecute = true` in risky context
+- `RWS-EXEC-002` — `UseShellExecute = true` in risky context
   - Detect `ProcessStartInfo.UseShellExecute = true` when combined with user‑derived data, increasing risk of shell injection.
 
-- `RSH-EXEC-003` — `Assembly.LoadFrom` with non‑literal path
+- `RWS-EXEC-003` — `Assembly.LoadFrom` with non‑literal path
   - `Assembly.LoadFrom` / `Assembly.LoadFile` where the path is not a simple literal and is influenced by external input or concatenated strings.
 
-- `RSH-EXEC-004` — Custom URI command registration pattern detected
+- `RWS-EXEC-004` — Custom URI command registration pattern detected
   - Detect patterns of registering custom URI handlers (e.g., via registry) that might allow launching executables with unsanitized arguments.
 
-- `RSH-EXEC-005` — `Process.Start` with interpolated/formatted string argument (Critical)
+- `RWS-EXEC-005` — `Process.Start` with interpolated/formatted string argument (Critical)
   - Detect `Process.Start(...)` where any argument is an interpolated string (`$"..."`), a `string.Format(...)` call, or a string concatenation containing a non‑literal operand. These are near‑certain injection vectors and are escalated to Critical severity. EXEC‑001 defers to this rule for those patterns.
 
-#### D. Embedded secrets scan – `RSH-SEC-*`
+#### D. Embedded secrets scan – `RWS-SEC-*`
 
 Goal: detect **hardcoded secrets and credentials** in .NET project surfaces.
 
 Initial rules:
 
-- `RSH-SEC-001` — Hardcoded API key/token pattern
+- `RWS-SEC-001` — Hardcoded API key/token pattern
   - Regex‑based detection of obvious API keys, tokens, and secrets in `.cs`, `.xaml`, `.resx`, `.csproj`, `.props`, `.targets`, and config files.
 
-- `RSH-SEC-002` — Suspicious secret in resource/config file
+- `RWS-SEC-002` — Suspicious secret in resource/config file
   - Detect credential‑like values (passwords, connection strings, client secrets) in `.resx`, `App.config`, `appsettings*.json`, and similar.
 
-- `RSH-SEC-003` — Credential‑like value in project metadata
+- `RWS-SEC-003` — Credential‑like value in project metadata
   - Detect secrets embedded in project files (e.g., `csproj` properties holding tokens, passwords, or keys).
 
-- `RSH-SEC-004` — Hardcoded connection string in source code (Critical)
+- `RWS-SEC-004` — Hardcoded connection string in source code (Critical)
   - Detect string literals in `.cs` files that contain ADO.NET connection strings with embedded passwords, or database URIs (MongoDB, PostgreSQL, MySQL) with embedded credentials. Checks Roslyn string literal tokens only — avoids matching comments or disabled code.
 
 ---
@@ -221,7 +221,7 @@ Do not start any v0.2 work without an explicit instruction to begin v0.2.
 
 Every finding includes:
 
-- `ruleId` – e.g., `RSH-REG-002`
+- `ruleId` – e.g., `RWS-REG-002`
 - `title` – short description.
 - `severity` – `Low | Medium | High | Critical`.
 - `file` – path relative to scan root.
@@ -232,7 +232,7 @@ Every finding includes:
 Example finding (console):
 
 ```text
-[HIGH] RSH-REG-002 Writable HKLM registry modification detected
+[HIGH] RWS-REG-002 Writable HKLM registry modification detected
 File: Services/RegistryService.cs:88
 
 Why this matters:
@@ -277,12 +277,12 @@ v0.1 exposes **one** primary command: `scan`.
 Examples:
 
 ```bash
-rsh scan
-rsh scan .\myapp
-rsh scan .\myapp\ --format json
-rsh scan .\myapp\ --format html --output report.html
-rsh scan .\myapp\ --offline
-rsh scan .\MyApp\ --roast
+rws scan
+rws scan .\myapp
+rws scan .\myapp\ --format json
+rws scan .\myapp\ --format html --output report.html
+rws scan .\myapp\ --offline
+rws scan .\MyApp\ --roast
 ```
 
 Flags:
@@ -308,7 +308,7 @@ Flags:
 - `--include <glob>` / `--exclude <glob>`
   - Override default include/exclude patterns.
 
-Do **not** add more commands in v0.1 (no `RSH rules`, no `RSH init-ci`, etc.).
+Do **not** add more commands in v0.1 (no `rws rules`, no `rws init-ci`, etc.).
 
 ---
 
@@ -336,7 +336,7 @@ Create at least one small fake Windows app fixture per rule group (or per cluste
 
 Add integration tests that:
 
-- Run `RSH scan` against these fixtures.
+- Run `rws scan` against these fixtures.
 - Assert:
   - Certain rule IDs appear.
   - Grade and severity counts are as expected.
@@ -387,9 +387,9 @@ You are an assistant in a Claude Code workspace, not an end user.
 **Typical tasks you will be asked to do**
 
 - Scaffold the solution and projects from this spec.
-- Implement `rsh scan` CLI and wire it to the core engine.
+- Implement `rws scan` CLI and wire it to the core engine.
 - Implement individual rule groups and their tests.
-- Add synthetic “cursed” example apps that intentionally trigger RSH findings.
+- Add synthetic “cursed” example apps that intentionally trigger rws findings.
 - Tweak reporters and scoring according to this document.
 
-Adhere closely to this spec. When in doubt, choose the option that keeps RSH **small, fast, and focused** for v0.1.
+Adhere closely to this spec. When in doubt, choose the option that keeps rws **small, fast, and focused** for v0.1.
