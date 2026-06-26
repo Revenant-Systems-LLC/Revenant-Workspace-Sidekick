@@ -7,7 +7,8 @@ namespace RevenantWorkspaceSidekick.Rules.Python;
 /// <summary>RWS-PY-001: Dangerous dynamic code execution (eval, exec, compile).</summary>
 public sealed partial class DangerousEvalRule : IRule
 {
-    [GeneratedRegex(@"\b(eval|exec|compile)\s*\((.*?)\)", RegexOptions.Singleline)]
+    // (?<!\.) excludes attribute-access calls like re.compile(...) or obj.eval(...)
+    [GeneratedRegex(@"(?<!\.)\b(eval|exec|compile)\s*\((.*?)\)", RegexOptions.Singleline)]
     private static partial Regex EvalRegex();
 
     public RuleMetadata Metadata { get; } = new(

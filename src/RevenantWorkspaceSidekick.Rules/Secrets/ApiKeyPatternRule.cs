@@ -112,6 +112,8 @@ public sealed partial class ApiKeyPatternRule : IRule
         {
             var value = match.Groups["val"].Value;
             if (value.Length < 20 || value.Length > 200) continue;
+            // Skip npm/yarn integrity checksums — these are SHA hashes, not secrets
+            if (value.StartsWith("sha512-") || value.StartsWith("sha256-") || value.StartsWith("sha1-")) continue;
             if (!EntropyScorer.IsHighEntropy(value)) continue;
 
             // Skip values already caught by Pass 1 or Pass 2 on the same line

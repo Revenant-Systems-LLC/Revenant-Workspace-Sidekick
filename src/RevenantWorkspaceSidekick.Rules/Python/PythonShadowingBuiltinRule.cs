@@ -12,7 +12,7 @@ public sealed partial class PythonShadowingBuiltinRule : IRule
         "list", "dict", "set", "str", "int", "float", "bool", "tuple", "type",
         "id", "input", "print", "len", "range", "map", "filter", "zip",
         "max", "min", "sum", "abs", "round", "sorted", "reversed",
-        "open", "file", "object", "hash", "next", "iter",
+        "open", "object", "hash", "next", "iter",  // "file" removed: not a Python 3 built-in
         "any", "all", "dir", "vars", "help", "format"
     ];
 

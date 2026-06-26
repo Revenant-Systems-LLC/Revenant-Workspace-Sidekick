@@ -7,8 +7,10 @@ namespace RevenantWorkspaceSidekick.Rules.Python;
 /// <summary>RWS-PY-009: Missing timeout in HTTP requests.</summary>
 public sealed partial class PythonMissingTimeoutRule : IRule
 {
-    [GeneratedRegex(@"requests\.(get|post|put|delete|patch|head|options|request)\s*\((.*?)\)", RegexOptions.Compiled | RegexOptions.Singleline)]
-    private static partial Regex RequestsRegex();
+    // Match the method name and opening paren only; args are extracted via balanced-paren walk
+    // so multi-line calls with nested function calls (e.g. headers=foo()) are handled correctly.
+    [GeneratedRegex(@"requests\.(get|post|put|delete|patch|head|options|request)\s*\(", RegexOptions.Compiled)]
+    private static partial Regex RequestsCallRegex();
 
     public RuleMetadata Metadata { get; } = new(
         Id: "RWS-PY-009",
@@ -19,11 +21,13 @@ public sealed partial class PythonMissingTimeoutRule : IRule
 
     public IEnumerable<Finding> Analyze(FileContext context)
     {
-        foreach (Match match in RequestsRegex().Matches(context.Content))
+        foreach (Match match in RequestsCallRegex().Matches(context.Content))
         {
-            var args = match.Groups[2].Value;
+            // The regex ends with \( so the last char of the match is the opening paren.
+            var openParen = match.Index + match.Length - 1;
+            var callBody = ExtractBalancedParens(context.Content, openParen);
 
-            if (!args.Contains("timeout="))
+            if (!callBody.Contains("timeout="))
             {
                 var line = GetLineNumber(context.Content, match.Index);
                 yield return new Finding(
@@ -37,6 +41,19 @@ public sealed partial class PythonMissingTimeoutRule : IRule
                 );
             }
         }
+    }
+
+    // Walk the content from openParenIndex, tracking paren depth, and return everything
+    // from the opening '(' to the matching closing ')' inclusive.
+    private static string ExtractBalancedParens(string content, int openParenIndex)
+    {
+        var depth = 0;
+        for (var i = openParenIndex; i < content.Length; i++)
+        {
+            if (content[i] == '(') depth++;
+            else if (content[i] == ')') { depth--; if (depth == 0) return content[openParenIndex..(i + 1)]; }
+        }
+        return content[openParenIndex..];
     }
 
     private static int GetLineNumber(string content, int charIndex)

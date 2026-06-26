@@ -11,13 +11,15 @@ public sealed partial class PythonBadNamingRule : IRule
     [GeneratedRegex(@"^\s*([a-hA-Hl-zL-Z])\s*=\s", RegexOptions.Compiled | RegexOptions.Multiline)]
     private static partial Regex SingleLetterRegex();
 
-    // Generic/meaningless variable names
+    // Generic/meaningless variable names.
+    // "data" excluded: ubiquitous idiom for response.json() / API payloads.
+    // "bb" excluded: common domain abbreviation (Bollinger Bands, byte-buffer, etc.)
     private static readonly HashSet<string> BadNames =
     [
-        "data", "temp", "tmp", "val", "val1", "val2",
+        "temp", "tmp", "val", "val1", "val2",
         "thing", "stuff", "foo", "bar", "baz",
         "result1", "result2", "var1", "var2",
-        "aa", "bb", "cc", "dd", "ee", "ff",
+        "aa", "cc", "dd", "ee", "ff",
         "xx", "yy", "zz", "abc"
     ];
 

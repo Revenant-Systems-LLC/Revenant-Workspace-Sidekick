@@ -34,6 +34,11 @@ public sealed partial class PythonHardcodedAbsolutePathRule : IRule
             if (lineText.TrimStart().StartsWith('#'))
                 continue;
 
+            // Skip paths that are default-value arguments to env-var lookups — they are
+            // already properly guarded and won't be used if the env var is set.
+            if (lineText.Contains("os.getenv(") || lineText.Contains("os.environ.get("))
+                continue;
+
             yield return new Finding(
                 RuleId: "RWS-PY-011",
                 Title: $"Hardcoded absolute path: {path}",
