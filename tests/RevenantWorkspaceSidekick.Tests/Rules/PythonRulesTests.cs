@@ -43,6 +43,26 @@ public class PythonRulesTests
         Assert.Empty(rule.Analyze(ctx));
     }
 
+    [Fact]
+    public void DangerousEvalRule_DoesNotTrigger_OnReCompile()
+    {
+        var rule = new DangerousEvalRule();
+        var ctx = Py("_PATTERN = re.compile(r'[a-z]+', re.IGNORECASE)");
+
+        Assert.Empty(rule.Analyze(ctx));
+    }
+
+    [Fact]
+    public void DangerousEvalRule_Triggers_OnBareCompileWithDynamicSource()
+    {
+        var rule = new DangerousEvalRule();
+        var ctx = Py("code_obj = compile(user_source, '<string>', 'exec')");
+
+        var findings = rule.Analyze(ctx).ToList();
+        Assert.Single(findings);
+        Assert.Equal("RWS-PY-001", findings[0].RuleId);
+    }
+
     // RWS-PY-002 (SubprocessShellRule)
 
     [Fact]

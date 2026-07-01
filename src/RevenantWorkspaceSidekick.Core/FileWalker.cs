@@ -22,7 +22,11 @@ public static class FileWalker
 
     private static readonly HashSet<string> DefaultExcludeSegments = new(StringComparer.OrdinalIgnoreCase)
     {
-        "bin", "obj", ".git", ".vs", ".idea", "packages", "node_modules"
+        "bin", "obj", ".git", ".vs", ".idea", "packages", "node_modules",
+        // Package-manager-generated lockfiles: not developer-authored, and their
+        // base64/hex integrity hashes trip the SEC-001 high-entropy secret heuristic.
+        "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "composer.lock",
+        "Gemfile.lock", "Cargo.lock", "poetry.lock", "Pipfile.lock"
     };
 
     public static IEnumerable<FileContext> Enumerate(
