@@ -44,14 +44,26 @@ public sealed partial class PythonMissingTimeoutRule : IRule
     }
 
     // Walk the content from openParenIndex, tracking paren depth, and return everything
-    // from the opening '(' to the matching closing ')' inclusive.
+    // from the opening '(' to the matching closing ')' inclusive. Parens inside string
+    // literals are skipped so a ')' in a quoted URL cannot terminate the scan early.
     private static string ExtractBalancedParens(string content, int openParenIndex)
     {
         var depth = 0;
+        var quote = '\0';
         for (var i = openParenIndex; i < content.Length; i++)
         {
-            if (content[i] == '(') depth++;
-            else if (content[i] == ')') { depth--; if (depth == 0) return content[openParenIndex..(i + 1)]; }
+            var c = content[i];
+
+            if (quote != '\0')
+            {
+                if (c == quote && content[i - 1] != '\\')
+                    quote = '\0';
+                continue;
+            }
+
+            if (c == '\'' || c == '"') quote = c;
+            else if (c == '(') depth++;
+            else if (c == ')') { depth--; if (depth == 0) return content[openParenIndex..(i + 1)]; }
         }
         return content[openParenIndex..];
     }

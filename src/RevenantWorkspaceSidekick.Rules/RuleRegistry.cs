@@ -18,6 +18,7 @@ using RevenantWorkspaceSidekick.Rules.Kotlin;
 using RevenantWorkspaceSidekick.Rules.Perl;
 using RevenantWorkspaceSidekick.Rules.Php;
 using RevenantWorkspaceSidekick.Rules.Rust;
+using RevenantWorkspaceSidekick.Rules.Student;
 using RevenantWorkspaceSidekick.Rules.Swift;
 using RevenantWorkspaceSidekick.Rules.Web;
 
@@ -159,5 +160,12 @@ public static class RuleRegistry
 
         // RWS-COM-*
         new TodoFixmeRule(),
+
+        // RWS-EDU-* (Student Mode; only run when --student is set)
+        new StudentPythonPrintRule(),
+        new StudentFlaskDebugRule(),
+        new StudentReactConsoleLogRule(),
+        new StudentLlmApiKeyRule(),
+        new StudentMissingReadmeRule(),
     ];
 }

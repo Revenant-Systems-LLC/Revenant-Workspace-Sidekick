@@ -444,3 +444,6 @@ test-*.html
 *.msix
 *.msm
 *.msp
+
+# Local agent notes
+AGENTS.md

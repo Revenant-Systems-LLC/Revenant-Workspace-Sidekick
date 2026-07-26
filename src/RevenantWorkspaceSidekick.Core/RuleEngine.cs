@@ -41,6 +41,10 @@ public static class RuleEngine
             var ext = System.IO.Path.GetExtension(file.Path);
             foreach (var rule in rules)
             {
+                // RWS-EDU-* rules are educational (Student Mode) and only run with --student.
+                if (rule.Metadata.Id.StartsWith("RWS-EDU-") && !options.StudentMode)
+                    continue;
+
                 if (!rule.Metadata.FileExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
                     continue;
 
