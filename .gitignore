@@ -447,3 +447,6 @@ test-*.html
 
 # Local agent notes
 AGENTS.md
+
+# Build output (release binaries live in GitHub Releases, not git)
+dist/
