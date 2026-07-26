@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\rws-icon.png" />
+    <EmbeddedResource Include="Assets\RWS_GOLD.png" Condition="Exists('Assets\RWS_GOLD.png')" />
   </ItemGroup>
 </Project>

@@ -7,70 +7,77 @@ namespace RevenantWorkspaceSidekick.Core.Reporters;
 
 public sealed class HtmlReporter : IReporter
 {
-    private const string SiteUrl      = "https://www.revenantsystems.net";
-    private const string GithubOrg    = "https://github.com/Revenant-Systems-LLC";
-    private const string EchoUrl      = "https://github.com/Revenant-Systems-LLC/Revenant-Echo";
-    private const string SortingHatUrl = "https://github.com/Revenant-Systems-LLC/Revenant-Sorting-Hat";
-    private const string RelayUrl     = "https://github.com/Revenant-Systems-LLC/Revenant-Relay";
+    private const string SiteUrl        = "https://www.revenantsystems.net";
+    private const string GithubOrg      = "https://github.com/Revenant-Systems-LLC";
+    private const string RelayUrl       = "https://github.com/Revenant-Systems-LLC/Revenant-Relay";
+    private const string WardenUrl      = "https://github.com/Revenant-Systems-LLC/Revenant-Workspace-Warden";
+    private const string ThemeStudioUrl = "https://github.com/Revenant-Systems-LLC/Revenant-Theme-Studio";
 
     public void Report(ScanResult result, TextWriter output)
     {
         var sb = new StringBuilder();
-
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html lang=\"en\">");
         sb.AppendLine("<head>");
         sb.AppendLine("<meta charset=\"UTF-8\">");
         sb.AppendLine("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
-        sb.AppendLine($"<title>RWS Report — {WebUtility.HtmlEncode(result.ScanRoot)}</title>");
+        sb.AppendLine($"<title>RWS — {WebUtility.HtmlEncode(result.ScanRoot)}</title>");
         sb.AppendLine(Css());
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
-
-        AppendHeader(sb);
+        sb.AppendLine("<div class=\"shell\">");
+        AppendLeftRail(sb);
+        sb.AppendLine("<main class=\"center\">");
         AppendHero(sb, result);
-
-        sb.AppendLine("<main class=\"container\">");
         AppendFindings(sb, result);
         sb.AppendLine("</main>");
-
+        AppendRightRail(sb);
+        sb.AppendLine("</div>");
         AppendFooter(sb);
-
         sb.AppendLine(InteractiveJs());
         sb.AppendLine("</body>");
         sb.AppendLine("</html>");
-
         output.Write(sb.ToString());
     }
 
-    private static void AppendHeader(StringBuilder sb)
+    private static void AppendLeftRail(StringBuilder sb)
     {
-        sb.AppendLine("<header class=\"site-header\">");
-        sb.AppendLine("  <div class=\"site-header__inner\">");
-        sb.AppendLine("    <div class=\"site-header__brand\">");
-        sb.AppendLine($"      <img class=\"site-logo\" src=\"data:image/png;base64,{LoadIconBase64()}\" alt=\"Revenant Systems\" />");
-        sb.AppendLine("      <div class=\"site-header__text\">");
-        sb.AppendLine($"        <a href=\"{SiteUrl}\" class=\"brand-name\" target=\"_blank\" rel=\"noopener\">REVENANT SYSTEMS</a>");
-        sb.AppendLine("        <span class=\"tool-name\">Workspace Sidekick</span>");
-        sb.AppendLine("      </div>");
+        sb.AppendLine("<aside class=\"rail\">");
+        sb.AppendLine($"  <a class=\"banner banner--placeholder\" href=\"{RelayUrl}\" target=\"_blank\" rel=\"noopener\">");
+        sb.AppendLine("    <span class=\"ph-tag\">art TBD</span>");
+        sb.AppendLine("    <span class=\"banner__vtext\">Revenant Relay</span>");
+        sb.AppendLine("    <span class=\"banner__repo\">Repo →</span>");
+        sb.AppendLine("  </a>");
+        sb.AppendLine($"  <a class=\"banner\" href=\"{WardenUrl}\" target=\"_blank\" rel=\"noopener\">");
+        sb.AppendLine("    <span class=\"banner__vtext\">Workspace Warden</span>");
+        sb.AppendLine("    <span class=\"banner__repo\">Repo →</span>");
+        sb.AppendLine("  </a>");
+        sb.AppendLine("</aside>");
+    }
+
+    private static void AppendRightRail(StringBuilder sb)
+    {
+        sb.AppendLine("<aside class=\"rail\">");
+        sb.AppendLine("  <div class=\"studio\">");
+        sb.AppendLine("    <div class=\"studio__name\">Revenant Theme Studio</div>");
+        sb.AppendLine("    <div class=\"studio__tag\">Custom icon themes for Windows</div>");
+        sb.AppendLine("    <div class=\"studio__preview\">");
+        sb.AppendLine("      <div class=\"studio__ph\">Icon previews coming soon</div>");
         sb.AppendLine("    </div>");
-        sb.AppendLine("    <nav class=\"site-nav\">");
-        sb.AppendLine($"      <a href=\"{SiteUrl}\" class=\"nav-link\" target=\"_blank\" rel=\"noopener\">revenantsystems.net</a>");
-        sb.AppendLine($"      <a href=\"{GithubOrg}\" class=\"nav-link\" target=\"_blank\" rel=\"noopener\">GitHub</a>");
-        sb.AppendLine("    </nav>");
+        sb.AppendLine($"    <a class=\"studio__repo\" href=\"{ThemeStudioUrl}\" target=\"_blank\" rel=\"noopener\">Repo →</a>");
         sb.AppendLine("  </div>");
-        sb.AppendLine("</header>");
+        sb.AppendLine("</aside>");
     }
 
     private static void AppendHero(StringBuilder sb, ScanResult result)
     {
         var (gradeColor, _) = result.Grade switch
         {
-            'A' => ("#00c896", "rgba(0,200,150,0.12)"),
-            'B' => ("#4caf50", "rgba(76,175,80,0.12)"),
-            'C' => ("#f5c518", "rgba(245,197,24,0.12)"),
-            'D' => ("#ff7c2b", "rgba(255,124,43,0.12)"),
-            _   => ("#ff3c3c", "rgba(255,60,60,0.12)")
+            'A' => ("#3ad5a1", "rgba(58,213,161,0.12)"),
+            'B' => ("#70c870", "rgba(112,200,112,0.12)"),
+            'C' => ("#d4a257", "rgba(212,162,87,0.12)"),
+            'D' => ("#c07050", "rgba(192,112,80,0.12)"),
+            _   => ("#c87070", "rgba(200,112,112,0.12)")
         };
 
         var arc = result.Score / 100.0 * 326.73;
@@ -81,35 +88,39 @@ public sealed class HtmlReporter : IReporter
         var low      = bySeverity.GetValueOrDefault(Severity.Low, 0);
 
         sb.AppendLine("<section class=\"hero\">");
-        sb.AppendLine("  <div class=\"hero__inner\">");
-
-        sb.AppendLine("    <div class=\"score-ring-wrap\">");
-        sb.AppendLine($"      <svg class=\"score-ring\" viewBox=\"0 0 120 120\" width=\"120\" height=\"120\">");
-        sb.AppendLine($"        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"none\" stroke=\"#1a2535\" stroke-width=\"8\"/>");
-        sb.AppendLine($"        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"none\" stroke=\"{gradeColor}\" stroke-width=\"8\" stroke-dasharray=\"{arc:F1} 326.73\" stroke-linecap=\"round\" transform=\"rotate(-90 60 60)\"/>");
-        sb.AppendLine($"        <text x=\"60\" y=\"56\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#e8edf2\" font-size=\"28\" font-weight=\"900\" font-family=\"system-ui,sans-serif\">{result.Grade}</text>");
-        sb.AppendLine($"        <text x=\"60\" y=\"76\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"{gradeColor}\" font-size=\"12\" font-family=\"system-ui,sans-serif\">{result.Score}/100</text>");
+        sb.AppendLine("  <div class=\"hero__top\">");
+        sb.AppendLine("    <div class=\"hero__text\">");
+        sb.AppendLine("      <div class=\"hero__eyebrow\">REVENANT SYSTEMS</div>");
+        sb.AppendLine("      <div class=\"wordmark\">Revenant</div>");
+        sb.AppendLine("      <div class=\"subwordmark\">Workspace Sidekick</div>");
+        sb.AppendLine("    </div>");
+        sb.AppendLine($"    <img class=\"hero__logo\" src=\"data:image/png;base64,{LoadIconBase64()}\" alt=\"Revenant Systems\">");
+        sb.AppendLine("  </div>");
+        sb.AppendLine("  <div class=\"scorebar\">");
+        sb.AppendLine("    <div class=\"ring-wrap\">");
+        sb.AppendLine("      <svg width=\"150\" height=\"150\" viewBox=\"0 0 120 120\">");
+        sb.AppendLine("        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"none\" stroke=\"#2d3748\" stroke-width=\"9\"/>");
+        sb.AppendLine($"        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"none\" stroke=\"{gradeColor}\" stroke-width=\"9\" stroke-dasharray=\"{arc:F2} 326.73\" stroke-linecap=\"round\" transform=\"rotate(-90 60 60)\"/>");
+        sb.AppendLine($"        <text x=\"60\" y=\"55\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"#cdd4de\" font-size=\"34\" font-weight=\"900\" font-family=\"system-ui\">{result.Grade}</text>");
+        sb.AppendLine($"        <text x=\"60\" y=\"80\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"{gradeColor}\" font-size=\"13\" font-family=\"system-ui\">{result.Score}/100</text>");
         sb.AppendLine("      </svg>");
         sb.AppendLine("    </div>");
-
-        sb.AppendLine("    <div class=\"hero__body\">");
-        sb.AppendLine("      <p class=\"hero__label\">SECURITY AUDIT REPORT</p>");
-        sb.AppendLine($"      <p class=\"hero__path\">{WebUtility.HtmlEncode(result.ScanRoot)}</p>");
-
-        sb.AppendLine("      <div class=\"sev-chips\">");
-        if (critical > 0) sb.AppendLine($"        <span class=\"sev-chip sev-chip--critical\"><span class=\"sev-chip__count\">{critical}</span> Critical</span>");
-        if (high     > 0) sb.AppendLine($"        <span class=\"sev-chip sev-chip--high\"><span class=\"sev-chip__count\">{high}</span> High</span>");
-        if (medium   > 0) sb.AppendLine($"        <span class=\"sev-chip sev-chip--medium\"><span class=\"sev-chip__count\">{medium}</span> Medium</span>");
-        if (low      > 0) sb.AppendLine($"        <span class=\"sev-chip sev-chip--low\"><span class=\"sev-chip__count\">{low}</span> Low</span>");
-        if (result.Findings.Count == 0) sb.AppendLine("        <span class=\"sev-chip sev-chip--clean\">&#10003; Clean</span>");
+        sb.AppendLine("    <div class=\"scoremeta\">");
+        sb.AppendLine("      <div class=\"hero__eyebrow\" style=\"color:var(--gold)\">SECURITY AUDIT REPORT</div>");
+        sb.AppendLine($"      <p class=\"path\">{WebUtility.HtmlEncode(result.ScanRoot)}</p>");
+        sb.AppendLine("      <div class=\"chips\">");
+        if (critical > 0) sb.AppendLine($"        <span class=\"chip chip--critical\"><b>{critical}</b> Critical</span>");
+        if (high     > 0) sb.AppendLine($"        <span class=\"chip chip--high\"><b>{high}</b> High</span>");
+        if (medium   > 0) sb.AppendLine($"        <span class=\"chip chip--medium\"><b>{medium}</b> Medium</span>");
+        if (low      > 0) sb.AppendLine($"        <span class=\"chip chip--low\"><b>{low}</b> Low</span>");
+        if (result.Findings.Count == 0) sb.AppendLine("        <span class=\"chip chip--clean\">&#10003; Clean</span>");
         sb.AppendLine("      </div>");
-
-        sb.AppendLine("      <div class=\"hero__meta\">");
-        sb.AppendLine($"        <span class=\"meta-item\"><span class=\"meta-label\">Files</span> {result.FilesScanned}</span>");
-        sb.AppendLine($"        <span class=\"meta-sep\">|</span>");
-        sb.AppendLine($"        <span class=\"meta-item\"><span class=\"meta-label\">Findings</span> {result.Findings.Count}</span>");
-        sb.AppendLine($"        <span class=\"meta-sep\">|</span>");
-        sb.AppendLine($"        <span class=\"meta-item\"><span class=\"meta-label\">Duration</span> {result.Duration.TotalSeconds:F2}s</span>");
+        sb.AppendLine("      <div class=\"metarow\">");
+        sb.AppendLine($"        <span><span class=\"lbl\">Files</span>{result.FilesScanned}</span>");
+        sb.AppendLine("        <span class=\"sep\">|</span>");
+        sb.AppendLine($"        <span><span class=\"lbl\">Findings</span>{result.Findings.Count}</span>");
+        sb.AppendLine("        <span class=\"sep\">|</span>");
+        sb.AppendLine($"        <span><span class=\"lbl\">Duration</span>{result.Duration.TotalSeconds:F2}s</span>");
         sb.AppendLine("      </div>");
         sb.AppendLine("    </div>");
         sb.AppendLine("  </div>");
@@ -153,7 +164,6 @@ public sealed class HtmlReporter : IReporter
                 (finding.Title + " " + finding.File + " " + finding.RuleId + " " + finding.Why).ToLowerInvariant());
 
             sb.AppendLine($"<article class=\"finding finding--{sevClass}\" data-severity=\"{sevClass}\" data-searchtext=\"{searchText}\">");
-
             sb.AppendLine($"  <div class=\"finding__header\" onclick=\"toggleFinding('{findingId}')\" role=\"button\" aria-expanded=\"true\" aria-controls=\"{findingId}\">");
             sb.AppendLine($"    <span class=\"sev-badge sev-badge--{sevClass}\">{finding.Severity.ToString().ToUpperInvariant()}</span>");
             sb.AppendLine($"    <span class=\"rule-id\">{WebUtility.HtmlEncode(finding.RuleId)}</span>");
@@ -165,7 +175,6 @@ public sealed class HtmlReporter : IReporter
             sb.AppendLine("    </div>");
             sb.AppendLine("    <span class=\"collapse-arrow\" aria-hidden=\"true\">&#9660;</span>");
             sb.AppendLine("  </div>");
-
             sb.AppendLine($"  <div class=\"finding__body\" id=\"{findingId}\">");
             sb.AppendLine($"    <p class=\"finding__file\">&#128196;&nbsp;{WebUtility.HtmlEncode(finding.File)}{(finding.Line.HasValue ? $"<span class=\"file-line\">:{finding.Line}</span>" : "")}</p>");
             sb.AppendLine("    <div class=\"finding__detail\">");
@@ -187,21 +196,17 @@ public sealed class HtmlReporter : IReporter
     {
         sb.AppendLine("<footer class=\"site-footer\">");
         sb.AppendLine("  <div class=\"site-footer__inner\">");
-
         sb.AppendLine("    <div class=\"footer-brand\">");
         sb.AppendLine($"      <a href=\"{SiteUrl}\" class=\"footer-brand__name\" target=\"_blank\" rel=\"noopener\">REVENANT SYSTEMS</a>");
         sb.AppendLine("      <span class=\"footer-brand__tagline\">Built to outlive.</span>");
         sb.AppendLine("    </div>");
-
+        sb.AppendLine("    <p class=\"footer-copy\">Revenant Workspace Sidekick v1.0 &mdash; Revenant Systems LLC</p>");
         sb.AppendLine("    <div class=\"footer-links\">");
-        sb.AppendLine("      <span class=\"footer-links__label\">More projects</span>");
-        sb.AppendLine($"      <a href=\"{EchoUrl}\" class=\"footer-link\" target=\"_blank\" rel=\"noopener\">Revenant Echo</a>");
-        sb.AppendLine($"      <a href=\"{SortingHatUrl}\" class=\"footer-link\" target=\"_blank\" rel=\"noopener\">Sorting Hat</a>");
         sb.AppendLine($"      <a href=\"{RelayUrl}\" class=\"footer-link\" target=\"_blank\" rel=\"noopener\">Relay</a>");
+        sb.AppendLine($"      <a href=\"{WardenUrl}\" class=\"footer-link\" target=\"_blank\" rel=\"noopener\">Workspace Warden</a>");
+        sb.AppendLine($"      <a href=\"{ThemeStudioUrl}\" class=\"footer-link\" target=\"_blank\" rel=\"noopener\">Theme Studio</a>");
         sb.AppendLine($"      <a href=\"{GithubOrg}\" class=\"footer-link footer-link--gh\" target=\"_blank\" rel=\"noopener\">GitHub ↗</a>");
         sb.AppendLine("    </div>");
-
-        sb.AppendLine("    <p class=\"footer-copy\">Revenant Workspace Sidekick v1.0 &mdash; Revenant Systems LLC</p>");
         sb.AppendLine("  </div>");
         sb.AppendLine("</footer>");
     }
@@ -215,24 +220,28 @@ public sealed class HtmlReporter : IReporter
             font-style: normal;
         }
 
+        /* Palette mirrors Revenant Workspace Warden (App.xaml design tokens) so the
+           two products read as one system. Do not drift these without updating Warden. */
         :root {
-            --bg:            #080b0f;
-            --bg-surface:    #0c1118;
-            --bg-card:       #0f1520;
-            --border:        #1a2535;
-            --border-subtle: #111e2c;
-            --teal:          #00c896;
-            --teal-bright:   #00e8b0;
-            --teal-dim:      #009e74;
-            --teal-bg:       rgba(0,200,150,.07);
-            --text-primary:  #e0e8f0;
-            --text-secondary:#7a8fa8;
-            --text-muted:    #3d5068;
-            --critical:      #ff3c3c;
-            --high:          #ff7c2b;
-            --medium:        #f5c518;
-            --low:           #4ec9b0;
-            --info:          #5595cc;
+            --bg:            #0f131a;  /* Warden MainWindow background */
+            --bg-surface:    #080c12;  /* Warden BgApp — deepest */
+            --bg-card:       #1c2330;  /* Warden BgSurface */
+            --bg-elevated:   #1a2840;  /* Warden elevated panel */
+            --border:        #2d3748;  /* Warden BorderColor */
+            --border-subtle: #1a2a3a;  /* Warden BorderGold */
+            --gold:          #dfbe81;  /* Warden Gold */
+            --gold-bright:   #f0d8a8;
+            --gold-deep:     #b8924a;
+            --gold-grad:     linear-gradient(180deg,#f0d8a8 0%,#dfbe81 55%,#b8924a 100%);
+            --text-primary:  #cdd4de;  /* Warden TextPrimary */
+            --text-secondary:#a8b5c8;  /* Warden TextCode */
+            --text-muted:    #5b6b7a;  /* Warden TextMuted */
+            --critical:      #c87070;  /* Warden error */
+            --high:          #c07050;  /* Warden warn */
+            --medium:        #d4a257;
+            --low:           #7fa6c9;
+            --info:          #a8b5c8;
+            --success:       #3ad5a1;  /* Warden jade */
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -245,167 +254,307 @@ public sealed class HtmlReporter : IReporter
             min-height: 100vh;
         }
 
-        /* ── Header ── */
-        .site-header {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 0.75rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .site-header__inner {
-            max-width: 1040px;
+        /* ── 3-column shell ── */
+        .shell {
+            display: grid;
+            grid-template-columns: 210px minmax(0,1fr) 250px;
+            gap: 1.25rem;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 1.25rem;
+            align-items: stretch;
+        }
+
+        /* ── Side rails ── */
+        .rail { display: flex; flex-direction: column; gap: 1.25rem; }
+
+        .banner {
+            position: relative;
+            flex: 1;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            text-decoration: none;
+            transition: border-color .15s;
+        }
+        .banner:hover { border-color: var(--gold); }
+
+        .banner__vtext {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-family: 'GhostTheory', serif;
+            font-size: 2rem;
+            letter-spacing: .12em;
+            background: var(--gold-grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+        }
+
+        .banner__logo {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 74px;
+            height: 74px;
+            object-fit: contain;
+        }
+
+        .banner__repo {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .62rem;
+            letter-spacing: .18em;
+            color: var(--gold-bright);
+            border: 1px solid var(--gold-deep);
+            border-radius: 4px;
+            padding: .25rem .6rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .banner--placeholder .banner__repo { color: var(--text-muted); border-color: var(--border); }
+
+        .ph-tag {
+            position: absolute;
+            top: .5rem;
+            right: .5rem;
+            font-size: .55rem;
+            letter-spacing: .1em;
+            color: var(--text-muted);
+            border: 1px dashed var(--border);
+            border-radius: 3px;
+            padding: 1px 5px;
+            text-transform: uppercase;
+        }
+
+        /* ── Center column ── */
+        .center { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+
+        /* ── Hero / branding ── */
+        .hero {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2rem;
+        }
+
+        .hero__top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1.5rem;
+            gap: 1.75rem;
         }
-        .site-header__brand { display: flex; align-items: center; gap: 0.9rem; }
-        .site-logo { height: 44px; width: auto; display: block; }
-        .site-header__text { display: flex; flex-direction: column; gap: 0.05rem; }
-        .brand-name {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 0.6rem;
-            font-weight: 800;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--teal);
-            text-decoration: none;
-        }
-        .brand-name:hover { color: var(--teal-bright); }
-        .tool-name {
-            font-family: 'GhostTheory', 'Segoe UI', system-ui, sans-serif;
-            font-size: 1.05rem;
-            color: var(--text-primary);
-            letter-spacing: 0.04em;
-        }
-        .site-nav { display: flex; align-items: center; gap: 1.25rem; }
-        .nav-link { font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; transition: color .15s; }
-        .nav-link:hover { color: var(--teal); }
 
-        /* ── Hero ── */
-        .hero {
-            background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg) 100%);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 2.5rem 2rem;
+        .hero__text { flex: 1; }
+
+        .hero__logo {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            flex-shrink: 0;
         }
-        .hero__inner {
-            max-width: 1040px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 3rem;
-        }
-        .score-ring-wrap { flex-shrink: 0; }
-        .score-ring { display: block; }
-        .hero__body { flex: 1; min-width: 0; }
-        .hero__label {
-            font-size: 0.6rem;
+
+        .hero__eyebrow {
+            font-size: .62rem;
             font-weight: 800;
-            letter-spacing: 0.3em;
-            color: var(--teal-dim);
-            margin-bottom: 0.4rem;
+            letter-spacing: .35em;
+            color: var(--gold);
+            margin-bottom: .5rem;
+            text-transform: uppercase;
         }
-        .hero__path {
+
+        .wordmark {
+            font-family: 'GhostTheory', serif;
+            font-size: 4.2rem;
+            line-height: .9;
+            letter-spacing: .02em;
+            background: var(--gold-grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+        }
+
+        .subwordmark {
+            font-family: 'GhostTheory', serif;
+            font-size: 1.5rem;
+            letter-spacing: .22em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: .15rem;
+        }
+
+        /* ── Score bar ── */
+        .scorebar { display: flex; align-items: center; gap: 2rem; margin-top: 1.75rem; flex-wrap: wrap; }
+        .ring-wrap { flex-shrink: 0; }
+        .scoremeta { flex: 1; min-width: 0; }
+
+        .path {
             font-family: 'Courier New', Consolas, monospace;
-            font-size: 0.85rem;
+            font-size: .82rem;
             color: var(--text-secondary);
             word-break: break-all;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
-        .sev-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
-        .sev-chip {
+
+        .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+
+        .chip {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.35rem 0.75rem;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            gap: .4rem;
+            padding: .35rem .75rem;
+            border-radius: 4px;
+            font-size: .8rem;
             font-weight: 600;
             border: 1px solid transparent;
         }
-        .sev-chip__count { font-size: 1rem; font-weight: 900; }
-        .sev-chip--critical { background: rgba(255,60,60,.12);  color: var(--critical); border-color: rgba(255,60,60,.3); }
-        .sev-chip--high     { background: rgba(255,124,43,.12); color: var(--high);     border-color: rgba(255,124,43,.3); }
-        .sev-chip--medium   { background: rgba(245,197,24,.12); color: var(--medium);   border-color: rgba(245,197,24,.3); }
-        .sev-chip--low      { background: rgba(78,201,176,.12); color: var(--low);      border-color: rgba(78,201,176,.3); }
-        .sev-chip--clean    { background: var(--teal-bg); color: var(--teal);           border-color: rgba(0,200,150,.3); }
-        .hero__meta { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .meta-item { font-size: 0.82rem; color: var(--text-secondary); }
-        .meta-label { color: var(--text-muted); margin-right: 0.25rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
-        .meta-sep { color: var(--border); }
+        .chip b { font-size: 1rem; font-weight: 900; }
+        .chip--critical { background: rgba(200,112,112,.12); color: var(--critical); border-color: rgba(200,112,112,.3); }
+        .chip--high     { background: rgba(192,112,80,.12);  color: var(--high);     border-color: rgba(192,112,80,.3); }
+        .chip--medium   { background: rgba(212,162,87,.12);  color: var(--medium);   border-color: rgba(212,162,87,.3); }
+        .chip--low      { background: rgba(127,166,201,.12); color: var(--low);      border-color: rgba(127,166,201,.3); }
+        .chip--clean    { background: rgba(58,213,161,.1);   color: var(--success);  border-color: rgba(58,213,161,.3); }
 
-        /* ── Container ── */
-        .container { max-width: 1040px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+        .metarow { display: flex; gap: .75rem; flex-wrap: wrap; font-size: .82rem; color: var(--text-secondary); align-items: center; }
+        .lbl { color: var(--text-muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .08em; margin-right: .25rem; }
+        .sep { color: var(--border); }
 
-        /* ── Clean state ── */
-        .clean-state { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
-        .clean-state__icon { font-size: 3rem; color: var(--teal); margin-bottom: 1rem; }
-        .clean-state__title { font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0.5rem; }
-        .clean-state__sub { font-size: 0.9rem; }
+        /* ── Right rail: Theme Studio ── */
+        .studio {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .9rem;
+            transition: border-color .15s;
+            cursor: pointer;
+        }
+        .studio:hover { border-color: var(--gold); }
 
-        /* ── Toolbar ── */
+        .studio__name {
+            font-family: 'GhostTheory', serif;
+            font-size: 1.1rem;
+            letter-spacing: .08em;
+            text-align: center;
+            background: var(--gold-grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .studio__tag { font-size: .65rem; color: var(--text-secondary); text-align: center; }
+
+        .studio__preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            border: 1px dashed var(--border);
+            border-radius: 4px;
+        }
+
+        .studio__ph { font-size: .65rem; color: var(--text-muted); text-align: center; letter-spacing: .08em; }
+
+        .studio__repo {
+            margin-top: auto;
+            text-align: center;
+            font-size: .62rem;
+            letter-spacing: .18em;
+            color: var(--gold-bright);
+            border: 1px solid var(--gold-deep);
+            border-radius: 4px;
+            padding: .35rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: block;
+            transition: border-color .15s, color .15s;
+        }
+        .studio__repo:hover { border-color: var(--gold-bright); color: var(--gold-bright); }
+
+        /* ── Findings toolbar ── */
         .findings-toolbar {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 0 0 1.5rem;
+            gap: .5rem;
+            margin-bottom: 1rem;
         }
-        .filter-btns { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+        .filter-btns { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; }
         .filter-btn {
-            padding: 0.3rem 0.7rem;
+            padding: .3rem .7rem;
             border-radius: 4px;
             border: 1px solid var(--border);
             background: var(--bg-card);
             color: var(--text-secondary);
-            font-size: 0.78rem;
+            font-size: .78rem;
             cursor: pointer;
             transition: all .15s;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: .3rem;
         }
-        .filter-btn.active, .filter-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .filter-btn.active, .filter-btn:hover { border-color: var(--gold); color: var(--gold); }
         .filter-btn--critical.active { border-color: var(--critical); color: var(--critical); }
         .filter-btn--high.active     { border-color: var(--high);     color: var(--high); }
         .filter-btn--medium.active   { border-color: var(--medium);   color: var(--medium); }
         .filter-btn--low.active      { border-color: var(--low);      color: var(--low); }
         .filter-count { font-weight: 700; }
+
         .search-box {
             margin-left: auto;
-            padding: 0.3rem 0.75rem;
+            padding: .3rem .75rem;
             width: 220px;
             border-radius: 4px;
             border: 1px solid var(--border);
             background: var(--bg-card);
             color: var(--text-primary);
-            font-size: 0.82rem;
+            font-size: .82rem;
             outline: none;
             transition: border-color .15s;
         }
-        .search-box:focus { border-color: var(--teal); }
+        .search-box:focus { border-color: var(--gold); }
         .search-box::placeholder { color: var(--text-muted); }
 
         /* ── Section label ── */
         .section-label {
-            font-size: 0.6rem;
+            font-size: .62rem;
             font-weight: 800;
-            letter-spacing: 0.3em;
+            letter-spacing: .32em;
             color: var(--text-muted);
-            padding-bottom: 0.75rem;
+            padding-bottom: .6rem;
             border-bottom: 1px solid var(--border-subtle);
-            margin-bottom: 1rem;
+            margin-bottom: .25rem;
         }
+
+        /* ── Clean state ── */
+        .clean-state { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+        .clean-state__icon { font-size: 3rem; color: var(--gold); margin-bottom: 1rem; }
+        .clean-state__title { font-size: 1.25rem; color: var(--text-primary); margin-bottom: .5rem; }
+        .clean-state__sub { font-size: .9rem; }
 
         /* ── Finding cards ── */
         .finding {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            margin-bottom: 0.6rem;
+            border-radius: 5px;
+            margin-bottom: .5rem;
             overflow: hidden;
             transition: border-color .15s;
         }
@@ -419,8 +568,8 @@ public sealed class HtmlReporter : IReporter
         .finding__header {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            padding: 0.85rem 1.25rem;
+            gap: .6rem;
+            padding: .85rem 1.1rem;
             cursor: pointer;
             user-select: none;
             flex-wrap: wrap;
@@ -431,29 +580,29 @@ public sealed class HtmlReporter : IReporter
             display: inline-block;
             padding: 2px 7px;
             border-radius: 3px;
-            font-size: 0.65rem;
+            font-size: .62rem;
             font-weight: 800;
-            letter-spacing: 0.07em;
+            letter-spacing: .07em;
             flex-shrink: 0;
         }
-        .sev-badge--critical { background: rgba(255,60,60,.15);  color: var(--critical); border: 1px solid rgba(255,60,60,.35); }
-        .sev-badge--high     { background: rgba(255,124,43,.15); color: var(--high);     border: 1px solid rgba(255,124,43,.35); }
-        .sev-badge--medium   { background: rgba(245,197,24,.15); color: var(--medium);   border: 1px solid rgba(245,197,24,.35); }
-        .sev-badge--low      { background: rgba(78,201,176,.15); color: var(--low);      border: 1px solid rgba(78,201,176,.35); }
-        .sev-badge--info     { background: rgba(85,149,204,.15); color: var(--info);     border: 1px solid rgba(85,149,204,.35); }
+        .sev-badge--critical { background: rgba(200,112,112,.15); color: var(--critical); border: 1px solid rgba(200,112,112,.35); }
+        .sev-badge--high     { background: rgba(192,112,80,.15);  color: var(--high);     border: 1px solid rgba(192,112,80,.35); }
+        .sev-badge--medium   { background: rgba(212,162,87,.15);  color: var(--medium);   border: 1px solid rgba(212,162,87,.35); }
+        .sev-badge--low      { background: rgba(127,166,201,.15); color: var(--low);      border: 1px solid rgba(127,166,201,.35); }
+        .sev-badge--info     { background: rgba(168,181,200,.15); color: var(--info);     border: 1px solid rgba(168,181,200,.35); }
 
-        .rule-id    { font-family: 'Courier New', Consolas, monospace; font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; }
-        .rule-title { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; }
-        .finding__tags { display: flex; gap: 0.3rem; margin-left: auto; }
-        .tag { padding: 1px 6px; border-radius: 3px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; }
-        .tag--live    { background: rgba(255,60,60,.2);    color: #ff8a8a; border: 1px solid rgba(255,60,60,.4); }
-        .tag--dead    { background: rgba(100,100,100,.2);  color: #888;    border: 1px solid #333; }
-        .tag--history { background: rgba(111,63,207,.2);   color: #b89aff; border: 1px solid rgba(111,63,207,.4); }
-        .collapse-arrow { color: var(--text-muted); font-size: 0.7rem; transition: transform .2s; flex-shrink: 0; }
+        .rule-id    { font-family: 'Courier New', Consolas, monospace; font-size: .72rem; color: var(--text-muted); flex-shrink: 0; }
+        .rule-title { font-size: .9rem; color: var(--text-primary); font-weight: 500; }
+        .finding__tags { display: flex; gap: .3rem; margin-left: auto; }
+        .tag { padding: 1px 6px; border-radius: 3px; font-size: .62rem; font-weight: 700; letter-spacing: .06em; }
+        .tag--live    { background: rgba(200,112,112,.2); color: #d98f8f; border: 1px solid rgba(200,112,112,.4); }
+        .tag--dead    { background: rgba(91,107,122,.2);  color: #5b6b7a; border: 1px solid #1a2a3a; }
+        .tag--history { background: rgba(127,166,201,.2); color: #9bb0d4; border: 1px solid rgba(127,166,201,.4); }
+        .collapse-arrow { color: var(--text-muted); font-size: .7rem; transition: transform .2s; flex-shrink: 0; }
 
         .finding__body {
             border-top: 1px solid var(--border-subtle);
-            padding: 1rem 1.25rem;
+            padding: .9rem 1.1rem;
             overflow: hidden;
             max-height: 2000px;
             transition: max-height .25s ease, padding .25s ease;
@@ -462,65 +611,67 @@ public sealed class HtmlReporter : IReporter
 
         .finding__file {
             font-family: 'Courier New', Consolas, monospace;
-            font-size: 0.75rem;
+            font-size: .75rem;
             color: var(--text-muted);
-            margin-bottom: 0.85rem;
+            margin-bottom: .7rem;
         }
-        .file-line { color: var(--teal-dim); }
-        .finding__detail { display: flex; flex-direction: column; gap: 0.75rem; }
-        .detail-block { display: flex; flex-direction: column; gap: 0.25rem; }
-        .detail-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-        .detail-text { font-size: 0.85rem; color: var(--text-secondary); }
-        .detail-block--fix { flex-direction: row; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; }
+        .file-line { color: var(--gold); }
+
+        .finding__detail { display: flex; flex-direction: column; gap: .75rem; }
+        .detail-block { display: flex; flex-direction: column; gap: .25rem; }
+        .detail-label { font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+        .detail-text { font-size: .85rem; color: var(--text-secondary); }
+        .detail-block--fix { flex-direction: row; align-items: flex-start; flex-wrap: wrap; gap: .5rem; }
         .detail-block--fix .detail-label { width: 100%; }
-        .detail-block--fix .detail-text { flex: 1; min-width: 200px; }
+        .detail-block--fix .detail-text  { flex: 1; min-width: 200px; }
 
         .copy-btn {
-            padding: 0.2rem 0.6rem;
+            padding: .2rem .6rem;
             border-radius: 3px;
             border: 1px solid var(--border);
             background: transparent;
             color: var(--text-muted);
-            font-size: 0.72rem;
+            font-size: .72rem;
             cursor: pointer;
             transition: all .15s;
             flex-shrink: 0;
             align-self: flex-start;
         }
-        .copy-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .copy-btn:hover { border-color: var(--gold); color: var(--gold); }
 
         .blinded-snippet {
             display: inline-block;
-            background: rgba(255,160,0,.08);
-            border: 1px solid rgba(255,160,0,.2);
-            color: #e8a800;
+            background: rgba(223,190,129,.08);
+            border: 1px solid rgba(223,190,129,.2);
+            color: var(--gold);
             font-family: 'Courier New', Consolas, monospace;
-            font-size: 0.8rem;
-            padding: 0.15rem 0.45rem;
+            font-size: .8rem;
+            padding: .15rem .45rem;
             border-radius: 3px;
         }
+
         .code-example {
             background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
             border-radius: 4px;
-            padding: 0.75rem 1rem;
+            padding: .75rem 1rem;
             font-family: 'Courier New', Consolas, monospace;
-            font-size: 0.78rem;
-            color: #7ec850;
+            font-size: .78rem;
+            color: var(--success);
             overflow-x: auto;
             white-space: pre-wrap;
-            margin-top: 0.5rem;
+            margin-top: .5rem;
         }
 
         /* ── Footer ── */
         .site-footer {
             background: var(--bg-surface);
             border-top: 1px solid var(--border-subtle);
-            padding: 2rem;
-            margin-top: 2rem;
+            padding: 1.5rem 2rem;
+            margin-top: .5rem;
         }
         .site-footer__inner {
-            max-width: 1040px;
+            max-width: 1400px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -528,23 +679,30 @@ public sealed class HtmlReporter : IReporter
             gap: 1.5rem;
             justify-content: space-between;
         }
-        .footer-brand { display: flex; flex-direction: column; gap: 0.2rem; }
+        .footer-brand { display: flex; flex-direction: column; gap: .2rem; }
         .footer-brand__name {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 0.6rem;
+            font-family: 'GhostTheory', serif;
+            font-size: .75rem;
             font-weight: 800;
-            letter-spacing: 0.3em;
-            color: var(--teal);
+            letter-spacing: .2em;
+            color: var(--gold);
             text-decoration: none;
+            text-transform: uppercase;
         }
-        .footer-brand__name:hover { color: var(--teal-bright); }
-        .footer-brand__tagline { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+        .footer-brand__name:hover { color: var(--gold-bright); }
+        .footer-brand__tagline { font-size: .72rem; color: var(--text-muted); font-style: italic; }
         .footer-links { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .footer-links__label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
-        .footer-link { font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; transition: color .15s; }
-        .footer-link:hover { color: var(--teal); }
-        .footer-link--gh { color: var(--teal-dim); }
-        .footer-copy { font-size: 0.72rem; color: var(--text-muted); }
+        .footer-link { font-size: .8rem; color: var(--text-secondary); text-decoration: none; transition: color .15s; }
+        .footer-link:hover { color: var(--gold); }
+        .footer-link--gh { color: var(--gold-deep); }
+        .footer-copy { font-size: .72rem; color: var(--text-muted); }
+
+        @media (max-width: 980px) {
+            .shell { grid-template-columns: 1fr; }
+            .rail { flex-direction: row; }
+            .banner { min-height: 160px; }
+            .wordmark { font-size: 3rem; }
+        }
         </style>
         """;
 
@@ -585,7 +743,9 @@ public sealed class HtmlReporter : IReporter
     {
         var asm = Assembly.GetExecutingAssembly();
         var name = asm.GetManifestResourceNames()
-            .FirstOrDefault(n => n.EndsWith("rws-icon.png", StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(n => n.EndsWith("RWS_GOLD.png", StringComparison.OrdinalIgnoreCase))
+            ?? asm.GetManifestResourceNames()
+               .FirstOrDefault(n => n.EndsWith("rws-icon.png", StringComparison.OrdinalIgnoreCase));
         if (name is null) return string.Empty;
         using var stream = asm.GetManifestResourceStream(name)!;
         var bytes = new byte[stream.Length];
