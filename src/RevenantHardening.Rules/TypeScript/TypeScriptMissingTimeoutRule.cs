@@ -7,9 +7,10 @@ namespace RevenantHardening.Rules.TypeScript;
 /// <summary>RSH-TS-010: Missing timeout in fetch/axios requests.</summary>
 public sealed partial class TypeScriptMissingTimeoutRule : IRule
 {
-    // Check for axios/fetch calls without explicit timeout settings
-    [GeneratedRegex(@"(?i)\b(axios\.(get|post|put|delete|patch)|fetch)\s*\((.*?)\)", RegexOptions.Compiled | RegexOptions.Singleline)]
-    private static partial Regex HttpRegex();
+    // Match only the call head; arguments are extracted with balanced-paren
+    // scanning below so nested parens and multi-line calls don't truncate early.
+    [GeneratedRegex(@"(?i)\b(axios\.(get|post|put|delete|patch)|fetch)\s*\(", RegexOptions.Compiled)]
+    private static partial Regex HttpHeadRegex();
 
     public RuleMetadata Metadata { get; } = new(
         Id: "RSH-TS-010",
@@ -20,13 +21,12 @@ public sealed partial class TypeScriptMissingTimeoutRule : IRule
 
     public IEnumerable<Finding> Analyze(FileContext context)
     {
-        foreach (Match match in HttpRegex().Matches(context.Content))
+        foreach (Match match in HttpHeadRegex().Matches(context.Content))
         {
+            var openParen = match.Index + match.Length - 1;
+            var args = ExtractBalancedArgs(context.Content, openParen);
             var funcName = match.Groups[1].Value;
-            var args = match.Groups[3].Value;
 
-            // Fetch does not have a timeout property natively, it uses AbortController
-            // Axios uses `timeout: X` in the config object
             if (!args.Contains("timeout") && !args.Contains("AbortSignal") && !args.Contains("signal"))
             {
                 var line = GetLineNumber(context.Content, match.Index);
@@ -37,10 +37,51 @@ public sealed partial class TypeScriptMissingTimeoutRule : IRule
                     File: context.RelativePath,
                     Line: line,
                     Why: "HTTP requests without explicit timeouts or AbortSignals can hang indefinitely if the server is unresponsive.",
-                    Fix: "For fetch, use AbortController. For axios, specify a timeout in the request config."
+                    Fix: "For fetch, use AbortController with a timeout. For axios, specify timeout in the request config."
                 );
             }
         }
+    }
+
+    /// <summary>
+    /// Return the full argument text between the call's opening paren and its matching
+    /// close paren, tracking nesting depth and skipping string literals.
+    /// </summary>
+    private static string ExtractBalancedArgs(string content, int openParenIndex)
+    {
+        var depth = 0;
+        var quote = '\0';
+        var start = openParenIndex + 1;
+        for (var i = openParenIndex; i < content.Length; i++)
+        {
+            var c = content[i];
+
+            if (quote != '\0')
+            {
+                if (c == quote && content[i - 1] != '\\')
+                    quote = '\0';
+                continue;
+            }
+
+            switch (c)
+            {
+                case '\'':
+                case '"':
+                case '`':
+                    quote = c;
+                    break;
+                case '(':
+                    depth++;
+                    break;
+                case ')':
+                    depth--;
+                    if (depth == 0)
+                        return content.Substring(start, i - start);
+                    break;
+            }
+        }
+
+        return content[start..];
     }
 
     private static int GetLineNumber(string content, int charIndex)

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/RevenantHardening.Cli/RevenantHardening.Cli.csproj" />
+    <Project Path="src/RevenantHardening.Companion/RevenantHardening.Companion.csproj" />
     <Project Path="src/RevenantHardening.Core/RevenantHardening.Core.csproj" />
     <Project Path="src/RevenantHardening.Rules/RevenantHardening.Rules.csproj" />
   </Folder>

@@ -20,6 +20,7 @@ using RevenantHardening.Rules.Php;
 using RevenantHardening.Rules.Rust;
 using RevenantHardening.Rules.Swift;
 using RevenantHardening.Rules.Web;
+using RevenantHardening.Rules.Student;
 
 namespace RevenantHardening.Rules;
 
@@ -158,5 +159,12 @@ public static class RuleRegistry
 
         // RSH-COM-*
         new TodoFixmeRule(),
+
+        // RSH-EDU-* (Student Contingencies)
+        new StudentPythonPrintRule(),
+        new StudentFlaskDebugRule(),
+        new StudentReactConsoleLogRule(),
+        new StudentLlmApiKeyRule(),
+        new StudentMissingReadmeRule(),
     ];
 }

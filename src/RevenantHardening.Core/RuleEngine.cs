@@ -22,6 +22,9 @@ public static class RuleEngine
             var ext = System.IO.Path.GetExtension(file.Path);
             foreach (var rule in rules)
             {
+                if (rule.Metadata.Id.StartsWith("RSH-EDU-") && !options.StudentMode)
+                    continue;
+
                 if (!rule.Metadata.FileExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
                     continue;
 

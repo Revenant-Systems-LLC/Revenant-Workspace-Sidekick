@@ -47,7 +47,6 @@ public static class ScanCommand
         string? outputFile = null;
         var offline = false;
         var roast = false;
-        var studentMode = false;
         var minSeverity = Severity.Low;
         var includes = new List<string>();
         var excludes = new List<string>();
@@ -69,11 +68,6 @@ public static class ScanCommand
                     break;
                 case "--roast":
                     roast = true;
-                    break;
-                case "--student":
-                    studentMode = true;
-                    if (minSeverity > Severity.Info)
-                        minSeverity = Severity.Info;
                     break;
                 case "--format" when i + 1 < args.Length:
                     format = args[++i];
@@ -104,7 +98,7 @@ public static class ScanCommand
         _ = offline; // reserved for future use
 
         return new ScanOptions(path, format, outputFile, offline, roast, minSeverity,
-            [.. includes], [.. excludes], studentMode);
+            [.. includes], [.. excludes], false);
     }
 
     private static bool TryParseSeverity(string value, out Severity severity)
