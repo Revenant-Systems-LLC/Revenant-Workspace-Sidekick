@@ -22,7 +22,8 @@ public static class FileWalker
 
     private static readonly HashSet<string> DefaultExcludeSegments = new(StringComparer.OrdinalIgnoreCase)
     {
-        "bin", "obj", ".git", ".vs", ".idea", "packages", "node_modules"
+        "bin", "obj", ".git", ".vs", ".idea", "packages", "node_modules",
+        "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Cargo.lock"
     };
 
     public static IEnumerable<FileContext> Enumerate(
