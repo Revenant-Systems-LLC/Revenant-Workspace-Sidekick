@@ -26,47 +26,16 @@ public sealed class HtmlReporter : IReporter
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
         sb.AppendLine("<div class=\"shell\">");
-        AppendLeftRail(sb);
         sb.AppendLine("<main class=\"center\">");
         AppendHero(sb, result);
         AppendFindings(sb, result);
         sb.AppendLine("</main>");
-        AppendRightRail(sb);
         sb.AppendLine("</div>");
         AppendFooter(sb);
         sb.AppendLine(InteractiveJs());
         sb.AppendLine("</body>");
         sb.AppendLine("</html>");
         output.Write(sb.ToString());
-    }
-
-    private static void AppendLeftRail(StringBuilder sb)
-    {
-        sb.AppendLine("<aside class=\"rail\">");
-        sb.AppendLine($"  <a class=\"banner banner--placeholder\" href=\"{RelayUrl}\" target=\"_blank\" rel=\"noopener\">");
-        sb.AppendLine("    <span class=\"ph-tag\">art TBD</span>");
-        sb.AppendLine("    <span class=\"banner__vtext\">Revenant Relay</span>");
-        sb.AppendLine("    <span class=\"banner__repo\">Repo →</span>");
-        sb.AppendLine("  </a>");
-        sb.AppendLine($"  <a class=\"banner\" href=\"{WardenUrl}\" target=\"_blank\" rel=\"noopener\">");
-        sb.AppendLine("    <span class=\"banner__vtext\">Workspace Warden</span>");
-        sb.AppendLine("    <span class=\"banner__repo\">Repo →</span>");
-        sb.AppendLine("  </a>");
-        sb.AppendLine("</aside>");
-    }
-
-    private static void AppendRightRail(StringBuilder sb)
-    {
-        sb.AppendLine("<aside class=\"rail\">");
-        sb.AppendLine("  <div class=\"studio\">");
-        sb.AppendLine("    <div class=\"studio__name\">Revenant Theme Studio</div>");
-        sb.AppendLine("    <div class=\"studio__tag\">Custom icon themes for Windows</div>");
-        sb.AppendLine("    <div class=\"studio__preview\">");
-        sb.AppendLine("      <div class=\"studio__ph\">Icon previews coming soon</div>");
-        sb.AppendLine("    </div>");
-        sb.AppendLine($"    <a class=\"studio__repo\" href=\"{ThemeStudioUrl}\" target=\"_blank\" rel=\"noopener\">Repo →</a>");
-        sb.AppendLine("  </div>");
-        sb.AppendLine("</aside>");
     }
 
     private static void AppendHero(StringBuilder sb, ScanResult result)
@@ -254,90 +223,14 @@ public sealed class HtmlReporter : IReporter
             min-height: 100vh;
         }
 
-        /* ── 3-column shell ── */
+        /* ── Single-column shell ── */
         .shell {
-            display: grid;
-            grid-template-columns: 210px minmax(0,1fr) 250px;
-            gap: 1.25rem;
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 1.25rem;
-            align-items: stretch;
         }
 
-        /* ── Side rails ── */
-        .rail { display: flex; flex-direction: column; gap: 1.25rem; }
-
-        .banner {
-            position: relative;
-            flex: 1;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-            text-decoration: none;
-            transition: border-color .15s;
-        }
-        .banner:hover { border-color: var(--gold); }
-
-        .banner__vtext {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            font-family: 'GhostTheory', serif;
-            font-size: 2rem;
-            letter-spacing: .12em;
-            background: var(--gold-grad);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-transform: uppercase;
-        }
-
-        .banner__logo {
-            position: absolute;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 74px;
-            height: 74px;
-            object-fit: contain;
-        }
-
-        .banner__repo {
-            position: absolute;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: .62rem;
-            letter-spacing: .18em;
-            color: var(--gold-bright);
-            border: 1px solid var(--gold-deep);
-            border-radius: 4px;
-            padding: .25rem .6rem;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .banner--placeholder .banner__repo { color: var(--text-muted); border-color: var(--border); }
-
-        .ph-tag {
-            position: absolute;
-            top: .5rem;
-            right: .5rem;
-            font-size: .55rem;
-            letter-spacing: .1em;
-            color: var(--text-muted);
-            border: 1px dashed var(--border);
-            border-radius: 3px;
-            padding: 1px 5px;
-            text-transform: uppercase;
-        }
-
-        /* ── Center column ── */
+        /* ── Content column ── */
         .center { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 
         /* ── Hero / branding ── */
@@ -429,64 +322,6 @@ public sealed class HtmlReporter : IReporter
         .metarow { display: flex; gap: .75rem; flex-wrap: wrap; font-size: .82rem; color: var(--text-secondary); align-items: center; }
         .lbl { color: var(--text-muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .08em; margin-right: .25rem; }
         .sep { color: var(--border); }
-
-        /* ── Right rail: Theme Studio ── */
-        .studio {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1.1rem;
-            display: flex;
-            flex-direction: column;
-            gap: .9rem;
-            transition: border-color .15s;
-            cursor: pointer;
-        }
-        .studio:hover { border-color: var(--gold); }
-
-        .studio__name {
-            font-family: 'GhostTheory', serif;
-            font-size: 1.1rem;
-            letter-spacing: .08em;
-            text-align: center;
-            background: var(--gold-grad);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-transform: uppercase;
-            line-height: 1.2;
-        }
-
-        .studio__tag { font-size: .65rem; color: var(--text-secondary); text-align: center; }
-
-        .studio__preview {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 120px;
-            border: 1px dashed var(--border);
-            border-radius: 4px;
-        }
-
-        .studio__ph { font-size: .65rem; color: var(--text-muted); text-align: center; letter-spacing: .08em; }
-
-        .studio__repo {
-            margin-top: auto;
-            text-align: center;
-            font-size: .62rem;
-            letter-spacing: .18em;
-            color: var(--gold-bright);
-            border: 1px solid var(--gold-deep);
-            border-radius: 4px;
-            padding: .35rem;
-            text-transform: uppercase;
-            text-decoration: none;
-            display: block;
-            transition: border-color .15s, color .15s;
-        }
-        .studio__repo:hover { border-color: var(--gold-bright); color: var(--gold-bright); }
 
         /* ── Findings toolbar ── */
         .findings-toolbar {
@@ -698,9 +533,6 @@ public sealed class HtmlReporter : IReporter
         .footer-copy { font-size: .72rem; color: var(--text-muted); }
 
         @media (max-width: 980px) {
-            .shell { grid-template-columns: 1fr; }
-            .rail { flex-direction: row; }
-            .banner { min-height: 160px; }
             .wordmark { font-size: 3rem; }
         }
         </style>
