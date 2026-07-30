@@ -475,3 +475,7 @@ tasks/*
 # not in the .slnx, and duplicates M:\Projects\Revenant-Workspace-Warden.
 # Carries a 30MB BACKGROUND.mp4. Left on disk, kept out of git.
 src/RevenantHardening.Companion/
+
+# Relay asset uploaded here by mistake. Ignored pending a decision on where it
+# belongs. Note: already committed upstream, so this only stops it recurring.
+RR_SKULL2.png
