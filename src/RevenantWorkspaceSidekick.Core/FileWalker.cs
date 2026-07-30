@@ -22,11 +22,20 @@ public static class FileWalker
 
     private static readonly HashSet<string> DefaultExcludeSegments = new(StringComparer.OrdinalIgnoreCase)
     {
-        "bin", "obj", ".git", ".vs", ".idea", "packages", "node_modules",
+        "bin", "obj", "dist", "publish", ".git", ".vs", ".idea", "packages", "node_modules",
         // Package-manager-generated lockfiles: not developer-authored, and their
         // base64/hex integrity hashes trip the SEC-001 high-entropy secret heuristic.
         "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "composer.lock",
         "Gemfile.lock", "Cargo.lock", "poetry.lock", "Pipfile.lock"
+    };
+
+    // Generated .NET publish manifests: filename varies with AssemblyName (<name>.deps.json),
+    // so these can't go in DefaultExcludeSegments (exact match only) — checked by suffix instead.
+    // They embed runtime-pack identifiers and NuGet integrity hashes that trip SEC-001 the same
+    // way lockfiles do, and they aren't developer-authored either.
+    private static readonly string[] DefaultExcludeFileSuffixes =
+    {
+        ".deps.json", ".runtimeconfig.json"
     };
 
     public static IEnumerable<FileContext> Enumerate(
@@ -122,6 +131,13 @@ public static class FileWalker
         foreach (var part in parts)
         {
             if (excludeSegments.Contains(part))
+                return true;
+        }
+
+        var fileName = parts[^1];
+        foreach (var suffix in DefaultExcludeFileSuffixes)
+        {
+            if (fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
         return false;

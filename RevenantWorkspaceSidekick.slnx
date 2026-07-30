@@ -3,6 +3,7 @@
     <Project Path="src/RevenantWorkspaceSidekick.Cli/RevenantWorkspaceSidekick.Cli.csproj" />
     <Project Path="src/RevenantWorkspaceSidekick.Core/RevenantWorkspaceSidekick.Core.csproj" />
     <Project Path="src/RevenantWorkspaceSidekick.Rules/RevenantWorkspaceSidekick.Rules.csproj" />
+    <Project Path="src/RevenantWorkspaceSidekick.Ui/RevenantWorkspaceSidekick.Ui.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/RevenantWorkspaceSidekick.Tests/RevenantWorkspaceSidekick.Tests.csproj" />

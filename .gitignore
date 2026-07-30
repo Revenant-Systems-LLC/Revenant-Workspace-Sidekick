@@ -450,3 +450,28 @@ AGENTS.md
 
 # Build output (release binaries live in GitHub Releases, not git)
 dist/
+
+# ── Repo hygiene (added 2026-07-30) ───────────────────────────────────
+# Packaged release output. Belongs in GitHub Releases, not git history.
+# (ship-plan-dist/rws.exe alone is 80MB; GitHub warns >50MB, rejects >100MB.)
+ship-plan-dist/
+
+# Pre-refactor source backup. 406 files / 118MB of duplicated tree.
+src_backup_pre_split/
+
+# Agent scratch: screenshots, video contact sheets, scan output.
+# todo.md and lessons.md are the exception - those are project record.
+tasks/*
+!tasks/todo.md
+!tasks/lessons.md
+
+# Superseded asset revisions
+**/*_prev_*.png
+**/*_prev.png
+**/*_prev_*.mp4
+**/*_prev.mp4
+
+# Warden pre-rename (RevenantHardening.Companion). Orphaned in this repo,
+# not in the .slnx, and duplicates M:\Projects\Revenant-Workspace-Warden.
+# Carries a 30MB BACKGROUND.mp4. Left on disk, kept out of git.
+src/RevenantHardening.Companion/

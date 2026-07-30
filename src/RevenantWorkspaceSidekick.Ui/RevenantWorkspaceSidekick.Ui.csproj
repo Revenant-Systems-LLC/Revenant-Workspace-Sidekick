@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>RevenantWorkspaceSidekick.Ui</AssemblyName>
+    <RootNamespace>RevenantWorkspaceSidekick.Ui</RootNamespace>
+    <ApplicationIcon></ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RevenantWorkspaceSidekick.Core\RevenantWorkspaceSidekick.Core.csproj" />
+    <ProjectReference Include="..\RevenantWorkspaceSidekick.Rules\RevenantWorkspaceSidekick.Rules.csproj" />
+  </ItemGroup>
+
+  <!-- Brand assets. Fonts MUST be <Resource> (not Content) for the
+       pack://application:,,,/Assets/#Family syntax to resolve. -->
+  <ItemGroup>
+    <!-- Street Reich  = titles / headers
+         Sell Your Soul = regular body text
+         Ghost Theory 1 = secondary body text
+         (Ghost Theory 2 was dropped at Dave's call, 2026-07-30.) -->
+    <Resource Include="Assets\Street Reich.otf" />
+    <Resource Include="Assets\Sell Your Soul.ttf" />
+    <Resource Include="Assets\Ghost theory 1.ttf" />
+    <Resource Include="Assets\Circuits.png" />
+    <Resource Include="Assets\RWS_Wordmark.png" />
+    <Resource Include="Assets\RWS_Mark.png" />
+  </ItemGroup>
+
+  <!-- Video must be Content, NOT Resource. MediaElement streams from a URI and
+       cannot read an embedded resource stream, so the file has to exist on disk
+       next to the exe. -->
+  <ItemGroup>
+    <Content Include="Assets\Background.mp4">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

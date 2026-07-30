@@ -141,4 +141,4 @@ dotnet build
 dotnet test
 dotnet run --project src/RevenantWorkspaceSidekick.Cli -- scan .
 License
-MIT License
+Proprietary. See LICENSE. Paid, perpetual, single-user; no redistribution or resale.

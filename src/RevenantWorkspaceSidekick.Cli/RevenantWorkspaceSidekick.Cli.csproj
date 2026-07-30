@@ -6,6 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>rws</AssemblyName>
     <RootNamespace>RevenantWorkspaceSidekick.Cli</RootNamespace>
+
+    <!-- Ship metadata -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>Revenant Workspace Sidekick</Product>
+    <AssemblyTitle>rws</AssemblyTitle>
+    <Company>Revenant Systems LLC</Company>
+    <Authors>Revenant Systems LLC</Authors>
+    <Copyright>Copyright © 2026 Revenant Systems LLC</Copyright>
+    <Description>Windows-focused hardening scanner for AI-coded desktop apps. Audits MSIX, registry, process launch, and embedded secrets before you ship.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\RevenantWorkspaceSidekick.Core\RevenantWorkspaceSidekick.Core.csproj" />
