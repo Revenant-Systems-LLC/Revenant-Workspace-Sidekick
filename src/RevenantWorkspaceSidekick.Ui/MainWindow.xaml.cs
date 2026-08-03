@@ -20,30 +20,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SourceInitialized += ApplyDarkCaption;
-        Loaded += (_, _) => BackgroundVideo.Play();
     }
 
-    // MediaElement has no built-in loop. Seeking back to zero on MediaEnded is
-    // the standard approach and is seamless here because the clip was cut on a
-    // matched frame pair.
-    private void BackgroundVideo_MediaEnded(object sender, RoutedEventArgs e)
-    {
-        BackgroundVideo.Position = TimeSpan.Zero;
-        BackgroundVideo.Play();
-    }
-
-    private void BackgroundVideo_MediaOpened(object sender, RoutedEventArgs e)
-    {
-        BackgroundFallback.Visibility = Visibility.Collapsed;
-    }
-
-    // If the video can't open (missing codec on a stripped-down Windows install,
-    // corrupt file), fall back to the still image rather than showing nothing.
-    private void BackgroundVideo_MediaFailed(object sender, ExceptionRoutedEventArgs e)
-    {
-        BackgroundVideo.Visibility = Visibility.Collapsed;
-        BackgroundFallback.Visibility = Visibility.Visible;
-    }
+    // The animated background and its three MediaElement handlers were removed
+    // 2026-07-30. It relied on wmp.dll, which is absent from this Windows install
+    // and would have to be added by every customer as an optional Windows feature
+    // just to see a background move. Dave scrapped it rather than ship that.
+    // The background is now a single static image, set in MainWindow.xaml.
 
     private void ApplyDarkCaption(object? sender, EventArgs e)
     {

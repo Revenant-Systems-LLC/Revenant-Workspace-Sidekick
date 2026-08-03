@@ -25,17 +25,28 @@
     <Resource Include="Assets\Street Reich.otf" />
     <Resource Include="Assets\Sell Your Soul.ttf" />
     <Resource Include="Assets\Ghost theory 1.ttf" />
-    <Resource Include="Assets\Circuits.png" />
     <Resource Include="Assets\RWS_Wordmark.png" />
     <Resource Include="Assets\RWS_Mark.png" />
+
+    <!-- The one and only background image: a seamless hex tile. Everything else
+         that was tried — tex-hex, tex-circuit-wide, tex-circuit-square, tex-marble,
+         Circuits.png — is unreferenced. Textured card backs were pulled ("it looks
+         messy") and the animated background was scrapped. Those files are still in
+         Assets\ but none of them ship. -->
+    <Resource Include="Assets\tex-hextiles.jpg" />
+
+    <!-- Company branding, distinct from the product mark/wordmark above.
+         Revenant Systems owns the app; Workspace Sidekick is the product. -->
+    <Resource Include="Assets\RevSys_Wordmark_Turquoise.png" />
+    <Resource Include="Assets\VegVisir_Turquoise.png" />
+    <!-- THE company logo — obsidian and gold skull inside the runic hex frame.
+         Sits left of REVENANT SYSTEMS in the footer. Distinct from the Vegvisir,
+         which now fills the grade ring until a scan produces a grade. -->
+    <Resource Include="Assets\RevSys_Logo.png" />
   </ItemGroup>
 
-  <!-- Video must be Content, NOT Resource. MediaElement streams from a URI and
-       cannot read an embedded resource stream, so the file has to exist on disk
-       next to the exe. -->
-  <ItemGroup>
-    <Content Include="Assets\Background.mp4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  <!-- Assets\Background.mp4 used to be copied to the output here for the animated
+       background. That feature is gone (see MainWindow.xaml) and shipping a video
+       nothing plays is dead weight, so it is no longer referenced. The file is
+       still in Assets\ if it is ever wanted again. -->
 </Project>

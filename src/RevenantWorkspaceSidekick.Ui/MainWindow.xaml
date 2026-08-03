@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:RevenantWorkspaceSidekick.Ui.ViewModels"
         Title="Revenant Workspace Sidekick"
-        Height="820" Width="1320"
-        MinHeight="620" MinWidth="1040"
+        Height="880" Width="1420"
+        MinHeight="640" MinWidth="1120"
         Icon="Assets/RWS_Mark.png"
         Background="{StaticResource BgApp}"
         TextOptions.TextFormattingMode="Display">
@@ -16,385 +16,790 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-        <!-- One severity card. Big numeral, colored rule down the left edge,
-             faint wash behind. Four of these are the point of the app. -->
-        <Style x:Key="SevCard" TargetType="Border">
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="2"/>
+        <!-- One severity card. Big numeral centered, name in the upper-left, wash
+             behind. Four of these are the point of the app, and each one is a
+             filter: click it and the grid shows only that severity, click again to
+             clear.
+
+             Deliberately NOT based on the theme's implicit Button style — that one
+             is gold-on-obsidian chrome, and a card is a colored surface. Fill and
+             fade come from the view model (LowCardBackground / LowCardOpacity and
+             friends) so the palette stays in SeverityBrushes. Hover turns the
+             border gold, the same "you can click this" language as everything else. -->
+        <Style x:Key="SevCardButton" TargetType="Button">
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2" Padding="14,10">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush"
+                                        Value="{StaticResource Gold}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
+        <!-- TextFont, not UiFont — this one holds a COUNT. Sell Your Soul has no
+             digits at all and renders them as nothing. -->
         <Style x:Key="SevNumeral" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
+            <Setter Property="FontFamily" Value="{StaticResource TextFont}"/>
             <Setter Property="FontSize" Value="52"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="LineHeight" Value="56"/>
             <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+
+        <!-- Upper-left corner of its card, with the count centered behind it. -->
         <Style x:Key="SevName" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="17"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+
+        <!-- Row tooltip carries the full file:line, because the grid trims that
+             line with an ellipsis when the column is narrow. Lives here rather
+             than in RevenantTheme.xaml on purpose: the theme has to stay
+             droppable into Warden verbatim, and Warden's rows have no FileLine. -->
+        <Style x:Key="FindingRow" TargetType="DataGridRow"
+               BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="ToolTip" Value="{Binding FileLine}"/>
+
+            <!-- ⚠ Selection feedback has to live HERE, not on the DataGrid.
+                 DataGrid.RowBackground and .AlternatingRowBackground get pushed
+                 onto each row's Background as a LOCAL value, and a local value
+                 outranks a style trigger — so the theme's IsSelected trigger was
+                 being silently overridden and clicking a finding lit up nothing.
+                 Both are set to {x:Null} on the grid below so these can win.
+
+                 A gold wash plus a gold bar down the left edge; hover is a
+                 fainter version of the same so the row answers the mouse. -->
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GoldGlow}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GoldDeep}"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GoldFaint}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource Gold}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <!-- Obsidian base, circuit texture over it, everything else floats on top
-         at partial alpha so the texture reads through. -->
     <Grid>
-        <!-- Animated obsidian circuit board. 4.375s seamless loop (frames 1-105
-             of the source, cut on Dave's frame pair; last->first differs by a
-             mean of 3.1 levels out of 255, so no crossfade needed).
+        <!-- ══ APP BACKGROUND ══════════════════════════════════════════════
+             The tiled geometric texture, behind everything. The ONLY background
+             image in the app.
 
-             Opacity 0.28, matching Warden. Dave's call: it was faded enough at
-             0.28 that it wasn't overtaking anything. A prior pass dropped this
-             to 0.12 and that was wrong. Do not "fix" it again without asking.
+             ⚠ THE ANIMATED BACKGROUND IS SCRAPPED. Dave killed it 2026-07-30 and
+             the reason is a shipping constraint, not a preference: WPF's
+             MediaElement wraps the Windows Media Player component, wmp.dll is
+             missing from this Windows install (verified — absent from both
+             System32 and SysWOW64), and the fix is an optional Windows feature
+             every customer would also have to install to see a moving background.
+             Do not reintroduce it. Background.mp4 and Circuits.png still sit in
+             Assets\ but are no longer referenced by the csproj and do not ship.
 
-             The still Circuits.png is still in Assets as a fallback. -->
-        <MediaElement x:Name="BackgroundVideo"
-                      Source="Assets/Background.mp4"
-                      LoadedBehavior="Manual"
-                      UnloadedBehavior="Stop"
-                      IsMuted="True"
-                      Volume="0"
-                      Stretch="UniformToFill"
-                      Opacity="0.28"
-                      IsHitTestVisible="False"
-                      MediaOpened="BackgroundVideo_MediaOpened"
-                      MediaEnded="BackgroundVideo_MediaEnded"
-                      MediaFailed="BackgroundVideo_MediaFailed"/>
+             Opacity 0.7. The cards sit on top at 92% black, so this reads mostly
+             in the gutters and through the header band.
 
-        <!-- Shown only if the video fails to open (missing codec, bad file).
-             Keeps the app from rendering a blank void in that case. -->
-        <Image x:Name="BackgroundFallback"
-               Source="Assets/Circuits.png"
+             Stretched, not tiled. Tiling was only ever a way to shrink hexagons
+             that were too big; this source already has them small, so one stretched
+             copy lands at the right density with no seams to hide.
+
+             UniformToFill keeps the hexagons regular and crops the overflow. Plain
+             Fill would reach every edge without cropping but squash them out of
+             round, which on a hex grid reads immediately as wrong. -->
+        <Image Source="Assets/tex-hextiles.jpg"
                Stretch="UniformToFill"
-               Opacity="0.28"
-               Visibility="Collapsed"
+               Opacity="0.7"
                IsHitTestVisible="False"/>
 
+        <!-- ══ TWO TOP-LEVEL COLUMNS ═══════════════════════════════════════
+             Left holds the header, options, verdict, body and footer. Right is
+             the rail, and it runs the FULL height of the window rather than
+             sitting inside the body row. That is why the bottom bar no longer
+             spans the whole app — it belongs to the left column only. -->
         <DockPanel Margin="14">
 
-            <!-- ══ HEADER BAND ══════════════════════════════════════════ -->
-            <Border DockPanel.Dock="Top" Margin="0,0,0,12"
-                    BorderThickness="0,0,0,1"
-                    BorderBrush="{StaticResource BorderGold}">
-                <Border Background="{StaticResource BgPanel}" Padding="18,12">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                <!-- ══ HEADER BAND — SPANS THE FULL WINDOW WIDTH ════════
+                     Docked above both columns, so it runs edge to edge across
+                     the rail as well. The footer does NOT — it lives inside the
+                     left column, which is what makes it stop short.
 
-                        <!-- Mark. Swap Assets/RWS_Mark.png to change the logo;
-                             nothing else in the app references it. -->
-                        <Image Grid.Column="0" Source="Assets/RWS_Mark.png"
-                               Height="72" Stretch="Uniform"
-                               VerticalAlignment="Center" Margin="0,0,20,0"/>
+                     The wordmark is centered across the band and the mark and
+                     eyebrow are pinned to the edges over it, so the wordmark
+                     sits at the true center of the window. -->
+                <Border DockPanel.Dock="Top" Margin="0,0,0,12"
+                        BorderThickness="0,0,0,1"
+                        BorderBrush="{StaticResource BorderGold}">
+                    <Border Background="{StaticResource BgSurface}" Padding="18,12">
+                        <Grid>
+                            <!-- No texture layer here any more. The hex moved out
+                                 to be the app background; the band is translucent
+                                 so it still reads through, same as everything else. -->
 
-                        <!-- Wordmark is an image, not type. The obsidian inlay
-                             lettering is rendered art and no font reproduces it. -->
-                        <Image Grid.Column="1" Source="Assets/RWS_Wordmark.png"
-                               Height="62" Stretch="Uniform"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"/>
+                            <!-- Wordmark alone in the centre. The name in type used
+                                 to sit under it in a StackPanel, which capped how
+                                 tall the art could get; it moved left so the
+                                 wordmark has the whole band to fill out. -->
+                            <Image Source="Assets/RWS_Wordmark.png"
+                                   Height="136" Stretch="Uniform"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
 
-                        <StackPanel Grid.Column="2" VerticalAlignment="Center"
-                                    HorizontalAlignment="Right">
-                            <TextBlock Style="{StaticResource Eyebrow}"
-                                       Text="S E C U R I T Y   A U D I T"
-                                       HorizontalAlignment="Right"/>
-                            <TextBlock Foreground="{StaticResource TextMuted}" FontSize="11"
-                                       HorizontalAlignment="Right" Margin="0,3,0,0"
-                                       Text="Audit your AI-coded app before you ship it."/>
-                        </StackPanel>
-                    </Grid>
+                            <!-- Company logo up top, product mark in the footer.
+                                 Swapped 2026-07-30 at Dave's direction. -->
+                            <Image Source="Assets/RevSys_Logo.png"
+                                   Height="132" Stretch="Uniform"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"/>
+
+                            <!-- Deliberately identical to the tagline on the right
+                                 of this band — same face, 12px, same TextCode grey.
+                                 Dave pointed at those "tiny little white words" and
+                                 asked for exactly that. Keep the two in step. -->
+                            <TextBlock Text="REVENANT WORKSPACE SIDEKICK"
+                                       FontFamily="{StaticResource TextFont}"
+                                       Foreground="{StaticResource TextCode}"
+                                       FontSize="12"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Bottom"
+                                       Margin="150,0,0,2"/>
+
+                            <StackPanel HorizontalAlignment="Right"
+                                        VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource Eyebrow}"
+                                           FontSize="18"
+                                           Text="SECURITY AUDIT"
+                                           HorizontalAlignment="Right"/>
+                                <TextBlock Foreground="{StaticResource TextCode}" FontSize="12"
+                                           FontFamily="{StaticResource TextFont}"
+                                           HorizontalAlignment="Right" Margin="0,3,0,0"
+                                           Text="Audit your AI-coded app before you ship it."/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Border>
-            </Border>
 
-            <!-- ══ OPTIONS BAR ══════════════════════════════════════════ -->
-            <Border DockPanel.Dock="Top" Margin="0,0,0,12"
-                    Background="{StaticResource BgSurface}"
-                    BorderBrush="{StaticResource BorderColor}"
-                    BorderThickness="1" CornerRadius="2" Padding="12,10">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBox Grid.Column="0" Margin="0,0,8,0"
-                             Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Project folder to scan"/>
-
-                    <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseCommand}"/>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal"
-                                Margin="18,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="MIN SEVERITY" Style="{StaticResource Eyebrow}"
-                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox Width="104"
-                                  ItemsSource="{Binding SeverityLevels}"
-                                  SelectedItem="{Binding MinSeverity}"/>
-                    </StackPanel>
-
-                    <CheckBox Grid.Column="3" Content="Roast" Margin="18,0,0,0"
-                              VerticalAlignment="Center" IsChecked="{Binding Roast}"/>
-                    <CheckBox Grid.Column="4" Content="Student mode" Margin="14,0,0,0"
-                              VerticalAlignment="Center" IsChecked="{Binding StudentMode}"/>
-
-                    <Button Grid.Column="5" Content="SCAN" Margin="20,0,0,0"
-                            Style="{StaticResource PrimaryButton}"
-                            Command="{Binding ScanCommand}"/>
-                </Grid>
-            </Border>
-
-            <!-- ══ STATUS STRIP ═════════════════════════════════════════ -->
-            <Border DockPanel.Dock="Bottom" Margin="0,12,0,0"
-                    Background="{StaticResource BgStatusBar}"
-                    BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="1" CornerRadius="2" Padding="12,7">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                               Foreground="{StaticResource TextCode}"
-                               Text="{Binding StatusText}"/>
-                    <ProgressBar Grid.Column="1" Width="150" Height="5"
-                                 IsIndeterminate="{Binding IsScanning}"
-                                 Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}"/>
-                </Grid>
-            </Border>
-
-            <!-- ══ BODY ═════════════════════════════════════════════════ -->
+            <!-- ══ EVERYTHING BELOW THE HEADER SPLITS IN TWO ════════════
+                 Left column: options, verdict, findings, Why, and the footer.
+                 Right column: score card, severity, export — running from
+                 directly under the header to the bottom edge of the window,
+                 which is why it passes the footer rather than stopping at it. -->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="420"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Findings -->
-                <Border Grid.Column="0" Margin="0,0,12,0"
+                <DockPanel Grid.Column="0" Margin="0,0,12,0">
+
+                <!-- ══ OPTIONS BAR ══════════════════════════════════════
+                     MIN SEVERITY used to live here and is gone on purpose. It set
+                     the engine's reporting floor, and Score and Grade are computed
+                     from whatever survives that floor — so raising it quietly
+                     raised your grade. The severity cards filter the view instead
+                     and leave the score alone. Roast is gone too; it arrives on
+                     its own now, at grade D or F. -->
+                <Border DockPanel.Dock="Top" Margin="0,0,0,12"
                         Background="{StaticResource BgSurface}"
-                        BorderBrush="{StaticResource BorderColor}"
-                        BorderThickness="1" CornerRadius="2">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Margin="14,10,0,8"
-                                   Style="{StaticResource SectionLabel}"
-                                   Text="F I N D I N G S"/>
-                        <DataGrid ItemsSource="{Binding Findings}"
-                                  SelectedItem="{Binding SelectedFinding}"
-                                  AutoGenerateColumns="False" IsReadOnly="True"
-                                  HeadersVisibility="Column"
-                                  GridLinesVisibility="Horizontal"
-                                  BorderThickness="0,1,0,0"
-                                  Background="Transparent">
-                            <DataGrid.Columns>
-                                <DataGridTemplateColumn Header="SEVERITY" Width="104">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border Background="{Binding SeverityWash}"
-                                                    BorderBrush="{Binding SeverityBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="2" Padding="7,3">
-                                                <TextBlock Text="{Binding SeverityLabel}"
-                                                           Foreground="{Binding SeverityBrush}"
-                                                           FontWeight="Bold" FontSize="10"
-                                                           HorizontalAlignment="Center"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="RULE" Binding="{Binding RuleId}" Width="122">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontFamily" Value="{StaticResource CodeFont}"/>
-                                            <Setter Property="FontSize" Value="11"/>
-                                            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="TITLE" Binding="{Binding Title}" Width="*"/>
-                                <DataGridTextColumn Header="FILE" Binding="{Binding File}" Width="200">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontFamily" Value="{StaticResource CodeFont}"/>
-                                            <Setter Property="FontSize" Value="11"/>
-                                            <Setter Property="Foreground" Value="{StaticResource TextCode}"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="LINE" Binding="{Binding Line}" Width="54"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </DockPanel>
+                        BorderBrush="{StaticResource BorderGold}"
+                        BorderThickness="1" CornerRadius="2" Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" Margin="0,0,8,0"
+                                 Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Project folder to scan"/>
+
+                        <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseCommand}"/>
+
+                        <CheckBox Grid.Column="2" Content="Student mode" Margin="20,0,0,0"
+                                  VerticalAlignment="Center" IsChecked="{Binding StudentMode}"
+                                  ToolTip="Includes Info-level findings and reframes the wording for coursework."/>
+
+                        <Button Grid.Column="3" Content="SCAN" Margin="20,0,0,0"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ScanCommand}"/>
+                    </Grid>
                 </Border>
 
-                <!-- Right rail: grade, then the severity block, then detail -->
-                <Grid Grid.Column="1">
+                <!-- ══ VERDICT ══════════════════════════════════════════
+                     The sentence a person actually reads. Full width because a
+                     roast is a sentence, not a chip. Appears only once a scan has
+                     run, and turns opinionated on its own at grade D or F. -->
+                <Border DockPanel.Dock="Top" Margin="0,0,0,12"
+                        Background="{StaticResource BgRaised}"
+                        BorderBrush="{Binding VerdictBrush}"
+                        BorderThickness="3,0,0,0"
+                        Padding="16,12"
+                        Visibility="{Binding HasVerdict, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding VerdictText}"
+                               FontFamily="{StaticResource TextFont}"
+                               Foreground="{Binding VerdictBrush}"
+                               FontSize="16" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- ══ FOOTER ═══════════════════════════════════════════
+                     Left column only — the rail runs past it to the window edge. -->
+                <!-- Same BgSurface as every card. The header and this used to run
+                     BgPanel (71%) and BgStatusBar (87%) against the cards' 92%, so
+                     three surfaces sat at three different darknesses. -->
+                <Border DockPanel.Dock="Bottom" Margin="0,12,0,0"
+                        Background="{StaticResource BgSurface}"
+                        BorderBrush="{StaticResource BorderGold}"
+                        BorderThickness="1" CornerRadius="2">
+                    <Grid Margin="12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Product mark down here, company logo up in the header.
+                             Swapped 2026-07-30 at Dave's direction. -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Image Source="Assets/RWS_Mark.png"
+                                   Height="58" Stretch="Uniform"
+                                   VerticalAlignment="Center"/>
+                            <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
+                                <!-- The ONLY place Street Reich is used in the whole
+                                     app. SECURITY AUDIT held the other slot and went
+                                     back to Sell Your Soul on 2026-07-30. -->
+                                <TextBlock Text="REVENANT SYSTEMS LLC"
+                                           FontFamily="{StaticResource TitleFont}"
+                                           FontSize="18" FontWeight="Bold"
+                                           Foreground="{StaticResource Gold}"/>
+                                <!-- One of three Revenant Systems mottos, all three
+                                     of which Dave uses publicly. Which one sits here
+                                     is his call. Broken across two lines after
+                                     "name," at his direction. -->
+                                <TextBlock FontFamily="{StaticResource TextFont}"
+                                           FontSize="12" FontStyle="Italic"
+                                           Foreground="{StaticResource TextMuted}"
+                                           Margin="0,2,0,0"><Run Text="The bird of Hermes is my name,"/><LineBreak/><Run Text="eating my wings to make me tame."/></TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Status line. Reports what the app is doing and what you
+                             are looking at: scanning, how many findings came back,
+                             which severity the grid is filtered to, where an export
+                             landed. Silent when it has nothing to say. -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Margin="20,0">
+                            <TextBlock VerticalAlignment="Center"
+                                       FontFamily="{StaticResource TextFont}"
+                                       Foreground="{StaticResource TextCode}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Text="{Binding StatusText}"/>
+                            <ProgressBar Width="150" Height="5"
+                                         Margin="14,0,0,0"
+                                         VerticalAlignment="Center"
+                                         IsIndeterminate="{Binding IsScanning}"
+                                         Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                   Text="All rights reserved."
+                                   FontFamily="{StaticResource TextFont}"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextMuted}"/>
+                    </Grid>
+                </Border>
+
+                <!-- ══ BODY ═════════════════════════════════════════════ -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="340"/>
+                        <!-- Star while the Why tray is open, Auto while it is
+                             closed so the collapsed tab's own width defines the
+                             column. Bound as a GridLength — no converter. -->
+                        <ColumnDefinition Width="{Binding WhyColumnWidth}"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ── FINDINGS ────────────────────────────────────
+                         No severity word here, only a colored chip — the word was
+                         clipping, and the cards already teach the color. File and
+                         line ride under the title as a muted second line, with the
+                         whole path on the row's tooltip. -->
+                    <Border Grid.Column="0" Margin="0,0,12,0"
+                            Background="{StaticResource BgSurface}"
+                            BorderBrush="{StaticResource BorderGold}"
+                            BorderThickness="1" CornerRadius="2">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Margin="14,10,0,8"
+                                       Style="{StaticResource SectionLabel}"
+                                       Text="FINDINGS"/>
+                            <DataGrid ItemsSource="{Binding Findings}"
+                                      SelectedItem="{Binding SelectedFinding}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0,1,0,0"
+                                      Background="Transparent"
+                                      RowBackground="{x:Null}"
+                                      AlternatingRowBackground="{x:Null}"
+                                      RowHeight="46"
+                                      RowStyle="{StaticResource FindingRow}">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="" Width="30">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Width="10" Height="26"
+                                                        CornerRadius="2"
+                                                        Background="{Binding SeverityBrush}"
+                                                        HorizontalAlignment="Center"
+                                                        ToolTip="{Binding SeverityLabel}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <DataGridTextColumn Header="RULE" Binding="{Binding RuleId}" Width="104">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontFamily" Value="{StaticResource CodeFont}"/>
+                                                <Setter Property="FontSize" Value="11"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="Foreground" Value="{StaticResource TextCode}"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <DataGridTemplateColumn Header="FINDING" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontFamily="{StaticResource TextFont}"
+                                                               FontSize="13"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding FileLine}"
+                                                               FontFamily="{StaticResource CodeFont}"
+                                                               FontSize="11"
+                                                               Foreground="{StaticResource TextMuted}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,3,0,0"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ── WHY THIS MATTERS, collapsible ───────────────── -->
+                    <Grid Grid.Column="1">
+                        <Border MinWidth="300"
+                                Background="{StaticResource BgSurface}"
+                                BorderBrush="{StaticResource BorderGold}"
+                                BorderThickness="1" CornerRadius="2"
+                                Visibility="{Binding IsWhyExpanded, Converter={StaticResource BoolToVis}}">
+                            <DockPanel>
+                                <Grid DockPanel.Dock="Top" Margin="14,10,10,8">
+                                    <TextBlock Style="{StaticResource SectionLabel}"
+                                               Margin="0" VerticalAlignment="Center"
+                                               Text="WHY THIS MATTERS"/>
+                                    <!-- Chevron is a drawn Path, not a glyph. The
+                                         display fonts have no "›" and it rendered
+                                         as an empty notdef box. -->
+                                    <Button HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding ToggleWhyCommand}"
+                                            Cursor="Hand"
+                                            ToolTip="Collapse this panel">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="cb" Background="Transparent"
+                                                        BorderBrush="{StaticResource BorderGold}"
+                                                        BorderThickness="1" CornerRadius="2"
+                                                        Padding="10,6">
+                                                    <Path x:Name="cp"
+                                                          Data="M 0,0 L 5,5 L 0,10"
+                                                          Stroke="{StaticResource GoldDeep}"
+                                                          StrokeThickness="2"
+                                                          Width="6" Height="11"
+                                                          Stretch="Fill"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="cb" Property="BorderBrush"
+                                                                Value="{StaticResource Gold}"/>
+                                                        <Setter TargetName="cp" Property="Stroke"
+                                                                Value="{StaticResource Gold}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              Margin="14,0,10,14">
+                                    <Grid>
+                                        <TextBlock Text="Select a finding to see why it matters."
+                                                   FontFamily="{StaticResource TextFont}"
+                                                   TextWrapping="Wrap" FontSize="16">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock"
+                                                       BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedFinding}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+
+                                        <StackPanel>
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedFinding}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+
+                                            <TextBlock Text="{Binding SelectedFinding.RuleId}"
+                                                       FontFamily="{StaticResource CodeFont}"
+                                                       FontSize="12" FontWeight="Bold"
+                                                       Foreground="{StaticResource GoldDeep}"/>
+                                            <TextBlock Text="{Binding SelectedFinding.Title}"
+                                                       FontFamily="{StaticResource TextFont}"
+                                                       FontSize="17" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource TextPrimary}"
+                                                       Margin="0,2,0,12"/>
+                                            <Border Height="1" Margin="0,0,0,14"
+                                                    Background="{StaticResource BorderSubtle}"/>
+
+                                            <TextBlock Text="{Binding SelectedFinding.Why}"
+                                                       FontFamily="{StaticResource TextFont}"
+                                                       TextWrapping="Wrap"
+                                                       FontSize="14" LineHeight="22"
+                                                       Foreground="{StaticResource TextPrimary}"
+                                                       Margin="0,0,0,18"/>
+
+                                            <TextBlock Style="{StaticResource SectionLabel}"
+                                                       Foreground="{StaticResource Turquoise}"
+                                                       Text="FIX"/>
+                                            <TextBlock Text="{Binding SelectedFinding.Fix}"
+                                                       FontFamily="{StaticResource TextFont}"
+                                                       TextWrapping="Wrap"
+                                                       FontSize="14" LineHeight="21"
+                                                       Foreground="{StaticResource TextCode}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Collapsed: a vertical tab. Click anywhere on it to
+                             bring the panel back. Text reads bottom-to-top. -->
+                        <Button Width="38"
+                                Command="{Binding ToggleWhyCommand}"
+                                Cursor="Hand"
+                                ToolTip="Show Why This Matters"
+                                Visibility="{Binding IsWhyCollapsed, Converter={StaticResource BoolToVis}}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="tab"
+                                            Background="{StaticResource BgSurface}"
+                                            BorderBrush="{StaticResource BorderGold}"
+                                            BorderThickness="1" CornerRadius="2">
+                                        <TextBlock Text="WHY THIS MATTERS"
+                                                   Style="{StaticResource SectionLabel}"
+                                                   Margin="0"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center">
+                                            <TextBlock.LayoutTransform>
+                                                <RotateTransform Angle="-90"/>
+                                            </TextBlock.LayoutTransform>
+                                        </TextBlock>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="tab" Property="BorderBrush"
+                                                    Value="{StaticResource Gold}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </DockPanel>
+
+            <!-- ══ RAIL — full window height ═══════════════════════════════
+                 Grade on top, severity taking the middle, export at the foot.
+                 Scrolls as one unit when the window is too short for all three;
+                 MinHeight bound to the scroller's viewport is what lets the star
+                 row stretch when there IS room and still scroll when there is not. -->
+            <ScrollViewer x:Name="RailScroll" Grid.Column="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid MinHeight="{Binding ViewportHeight, ElementName=RailScroll}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- ── GRADE ───────────────────────────────────────── -->
+                    <!-- ── GRADE ───────────────────────────────────── -->
                     <Border Grid.Row="0" Margin="0,0,0,12"
                             Background="{StaticResource BgSurface}"
                             BorderBrush="{StaticResource BorderGold}"
-                            BorderThickness="1" CornerRadius="2" Padding="18,14">
-                        <Grid>
+                            BorderThickness="1" CornerRadius="2">
+                        <Grid Margin="18,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Width="96" Height="96"
-                                    CornerRadius="48"
+                            <Border Grid.Column="0" Width="160" Height="160"
+                                    CornerRadius="80"
                                     Background="{StaticResource BgPanel}"
                                     BorderBrush="{Binding GradeBrush}"
                                     BorderThickness="3">
-                                <TextBlock Text="{Binding GradeText}"
-                                           Foreground="{Binding GradeBrush}"
-                                           FontSize="46" FontWeight="Bold"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
+                                <Grid>
+                                    <!-- Vegvisir holds the ring until a scan
+                                         produces a grade. An empty circle with a
+                                         dash in it says nothing; the mark at least
+                                         says whose tool this is. -->
+                                    <Image Source="Assets/VegVisir_Turquoise.png"
+                                           Stretch="Uniform" Margin="14">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasGrade}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+
+                                    <TextBlock Text="{Binding GradeText}"
+                                               Foreground="{Binding GradeBrush}"
+                                               FontSize="80" FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Visibility="{Binding HasGrade, Converter={StaticResource BoolToVis}}"/>
+                                </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="1" Margin="18,0,0,0"
                                         VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource Eyebrow}" Text="S C O R E"/>
+                                <TextBlock Style="{StaticResource Eyebrow}"
+                                           FontSize="20" Text="SCORE"/>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Score}"
+                                               FontFamily="{StaticResource TextFont}"
                                                Foreground="{StaticResource GoldGradient}"
                                                FontSize="42" FontWeight="Bold"/>
-                                    <TextBlock Text="/100" Foreground="{StaticResource TextMuted}"
+                                    <TextBlock Text="/100"
+                                               FontFamily="{StaticResource TextFont}"
+                                               Foreground="{StaticResource TextMuted}"
                                                FontSize="15" VerticalAlignment="Bottom"
                                                Margin="3,0,0,8"/>
                                 </StackPanel>
-                                <TextBlock Foreground="{StaticResource TextMuted}" FontSize="11"
-                                           Text="{Binding FilesScanned, StringFormat='{}{0} files'}"/>
-                                <TextBlock Foreground="{StaticResource TextMuted}" FontSize="11"
-                                           Text="{Binding DurationText, StringFormat='{}{0} elapsed'}"/>
+
+                                <!-- Labels in one column, values in the other, so
+                                     both line up. Value-first meant "0" and
+                                     "00:00.00" pushed the labels out of alignment. -->
+                                <Grid Margin="0,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="FILES"
+                                               Foreground="{StaticResource TextCode}"
+                                               FontSize="17" Margin="0,0,14,0"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                               Text="{Binding FilesScanned}"
+                                               FontFamily="{StaticResource TextFont}"
+                                               Foreground="{StaticResource TextPrimary}"
+                                               FontSize="17"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="ELAPSED"
+                                               Foreground="{StaticResource TextCode}"
+                                               FontSize="17" Margin="0,5,14,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1"
+                                               Text="{Binding DurationText}"
+                                               FontFamily="{StaticResource TextFont}"
+                                               Foreground="{StaticResource TextPrimary}"
+                                               FontSize="17" Margin="0,5,0,0"/>
+                                </Grid>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- ── SEVERITY BREAKDOWN — the reason the app exists ─ -->
-                    <Border Grid.Row="1" Margin="0,0,0,12"
+                    <!-- ── SEVERITY — the reason the app exists ─────────
+                         Reading order, left to right and top to bottom: LOW,
+                         MEDIUM, HIGH, CRITICAL. Each card filters the grid; the
+                         active one fills, the rest fade back. Card rows are star
+                         sized so the block stretches into the rail's height. -->
+                    <Border Grid.Row="1"
                             Background="{StaticResource BgSurface}"
-                            BorderBrush="{StaticResource BorderColor}"
-                            BorderThickness="1" CornerRadius="2" Padding="10,10,10,12">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionLabel}" Margin="6,0,0,8"
-                                       Text="S E V E R I T Y"/>
-                            <Grid>
+                            BorderBrush="{StaticResource BorderGold}"
+                            BorderThickness="1" CornerRadius="2">
+                        <Grid Margin="10,10,10,12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Margin="6,0,0,8"
+                                       Style="{StaticResource SectionLabel}"
+                                       Text="SEVERITY"/>
+
+                            <Grid Grid.Row="1">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource SevCard}"
-                                        Background="{StaticResource SevCriticalWash}"
-                                        BorderBrush="{StaticResource SevCritical}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource SevNumeral}"
-                                                   Foreground="{StaticResource SevCritical}"
-                                                   Text="{Binding CriticalCount}"/>
-                                        <TextBlock Style="{StaticResource SevName}"
-                                                   Foreground="{StaticResource SevCritical}"
-                                                   Text="CRITICAL"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource SevCard}"
-                                        Background="{StaticResource SevHighWash}"
-                                        BorderBrush="{StaticResource SevHigh}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource SevNumeral}"
-                                                   Foreground="{StaticResource SevHigh}"
-                                                   Text="{Binding HighCount}"/>
-                                        <TextBlock Style="{StaticResource SevName}"
-                                                   Foreground="{StaticResource SevHigh}"
-                                                   Text="HIGH"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource SevCard}"
-                                        Background="{StaticResource SevMediumWash}"
-                                        BorderBrush="{StaticResource SevMedium}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource SevNumeral}"
-                                                   Foreground="{StaticResource SevMedium}"
-                                                   Text="{Binding MediumCount}"/>
-                                        <TextBlock Style="{StaticResource SevName}"
-                                                   Foreground="{StaticResource SevMedium}"
-                                                   Text="MEDIUM"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource SevCard}"
-                                        Background="{StaticResource SevLowWash}"
-                                        BorderBrush="{StaticResource SevLow}">
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource SevNumeral}"
-                                                   Foreground="{StaticResource SevLow}"
-                                                   Text="{Binding LowCount}"/>
+                                <Button Grid.Row="0" Grid.Column="0"
+                                        Style="{StaticResource SevCardButton}"
+                                        Background="{Binding LowCardBackground}"
+                                        BorderBrush="{StaticResource SevLow}"
+                                        Opacity="{Binding LowCardOpacity}"
+                                        Command="{Binding FilterLowCommand}"
+                                        ToolTip="Show only Low findings. Click again to clear.">
+                                    <Grid>
                                         <TextBlock Style="{StaticResource SevName}"
                                                    Foreground="{StaticResource SevLow}"
                                                    Text="LOW"/>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
+                                        <TextBlock Style="{StaticResource SevNumeral}"
+                                                   Foreground="{StaticResource SevLow}"
+                                                   Text="{Binding LowCount}"/>
+                                    </Grid>
+                                </Button>
 
-                            <Grid Margin="4,10,4,0">
+                                <Button Grid.Row="0" Grid.Column="1"
+                                        Style="{StaticResource SevCardButton}"
+                                        Background="{Binding MediumCardBackground}"
+                                        BorderBrush="{StaticResource SevMedium}"
+                                        Opacity="{Binding MediumCardOpacity}"
+                                        Command="{Binding FilterMediumCommand}"
+                                        ToolTip="Show only Medium findings. Click again to clear.">
+                                    <Grid>
+                                        <TextBlock Style="{StaticResource SevName}"
+                                                   Foreground="{StaticResource SevMedium}"
+                                                   Text="MEDIUM"/>
+                                        <TextBlock Style="{StaticResource SevNumeral}"
+                                                   Foreground="{StaticResource SevMedium}"
+                                                   Text="{Binding MediumCount}"/>
+                                    </Grid>
+                                </Button>
+
+                                <Button Grid.Row="1" Grid.Column="0"
+                                        Style="{StaticResource SevCardButton}"
+                                        Background="{Binding HighCardBackground}"
+                                        BorderBrush="{StaticResource SevHigh}"
+                                        Opacity="{Binding HighCardOpacity}"
+                                        Command="{Binding FilterHighCommand}"
+                                        ToolTip="Show only High findings. Click again to clear.">
+                                    <Grid>
+                                        <TextBlock Style="{StaticResource SevName}"
+                                                   Foreground="{StaticResource SevHigh}"
+                                                   Text="HIGH"/>
+                                        <TextBlock Style="{StaticResource SevNumeral}"
+                                                   Foreground="{StaticResource SevHigh}"
+                                                   Text="{Binding HighCount}"/>
+                                    </Grid>
+                                </Button>
+
+                                <Button Grid.Row="1" Grid.Column="1"
+                                        Style="{StaticResource SevCardButton}"
+                                        Background="{Binding CriticalCardBackground}"
+                                        BorderBrush="{StaticResource SevCritical}"
+                                        Opacity="{Binding CriticalCardOpacity}"
+                                        Command="{Binding FilterCriticalCommand}"
+                                        ToolTip="Show only Critical findings. Click again to clear.">
+                                    <Grid>
+                                        <TextBlock Style="{StaticResource SevName}"
+                                                   Foreground="{StaticResource SevCritical}"
+                                                   Text="CRITICAL"/>
+                                        <TextBlock Style="{StaticResource SevNumeral}"
+                                                   Foreground="{StaticResource SevCritical}"
+                                                   Text="{Binding CriticalCount}"/>
+                                    </Grid>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── EXPORT ──────────────────────────────────────── -->
+                    <Border Grid.Row="2" Margin="0,12,0,0"
+                            Background="{StaticResource BgSurface}"
+                            BorderBrush="{StaticResource BorderGold}"
+                            BorderThickness="1" CornerRadius="2"
+                            Padding="10,10,10,12">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionLabel}"
+                                       Margin="6,0,0,8" Text="EXPORT"/>
+                            <Grid Margin="4,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="Export JSON" Margin="0,0,4,0"
+                                <Button Grid.Column="0" Content="JSON"
+                                        Margin="0,0,5,0" Padding="14,11"
                                         Command="{Binding ExportJsonCommand}"/>
-                                <Button Grid.Column="1" Content="Export HTML" Margin="4,0,0,0"
+                                <Button Grid.Column="1" Content="HTML"
+                                        Margin="5,0,0,0" Padding="14,11"
                                         Command="{Binding ExportHtmlCommand}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
-
-                    <!-- ── SELECTED FINDING ────────────────────────────── -->
-                    <Border Grid.Row="2"
-                            Background="{StaticResource BgPanel}"
-                            BorderBrush="{StaticResource BorderColor}"
-                            BorderThickness="1" CornerRadius="2" Padding="14,12">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource SectionLabel}"
-                                           Text="W H Y   T H I S   M A T T E R S"/>
-                                <TextBlock Text="{Binding SelectedFinding.Why}"
-                                           TextWrapping="Wrap" FontSize="12"
-                                           Foreground="{StaticResource TextPrimary}"
-                                           Margin="0,0,0,14"/>
-                                <TextBlock Style="{StaticResource SectionLabel}"
-                                           Foreground="{StaticResource Turquoise}"
-                                           Text="F I X"/>
-                                <TextBlock Text="{Binding SelectedFinding.Fix}"
-                                           TextWrapping="Wrap" FontSize="12"
-                                           Foreground="{StaticResource TextCode}"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Border>
                 </Grid>
+            </ScrollViewer>
             </Grid>
         </DockPanel>
     </Grid>

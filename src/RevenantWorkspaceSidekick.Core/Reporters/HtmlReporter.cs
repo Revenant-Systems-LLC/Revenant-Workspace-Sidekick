@@ -44,9 +44,9 @@ public sealed class HtmlReporter : IReporter
         {
             'A' => ("#3ad5a1", "rgba(58,213,161,0.12)"),
             'B' => ("#70c870", "rgba(112,200,112,0.12)"),
-            'C' => ("#d4a257", "rgba(212,162,87,0.12)"),
-            'D' => ("#c07050", "rgba(192,112,80,0.12)"),
-            _   => ("#c87070", "rgba(200,112,112,0.12)")
+            'C' => ("#f59a20", "rgba(245,154,32,0.12)"),
+            'D' => ("#da2b26", "rgba(218,43,38,0.12)"),
+            _   => ("#8c1436", "rgba(140,20,54,0.12)")
         };
 
         var arc = result.Score / 100.0 * 326.73;
@@ -205,11 +205,13 @@ public sealed class HtmlReporter : IReporter
             --text-primary:  #cdd4de;  /* Warden TextPrimary */
             --text-secondary:#a8b5c8;  /* Warden TextCode */
             --text-muted:    #5b6b7a;  /* Warden TextMuted */
-            --critical:      #c87070;  /* Warden error */
-            --high:          #c07050;  /* Warden warn */
-            --medium:        #d4a257;
-            --low:           #7fa6c9;
-            --info:          #a8b5c8;
+            /* Five levels, five colors, set by Dave 2026-07-30. Mirrors
+               Theme/RevenantTheme.xaml and SeverityBrushes.cs exactly. */
+            --critical:      #8c1436;  /* deep crimson */
+            --high:          #da2b26;  /* red */
+            --medium:        #f59a20;  /* orange */
+            --low:           #f0de1b;  /* yellow */
+            --info:          #7fa6c9;  /* light blue */
             --success:       #3ad5a1;  /* Warden jade */
         }
 
@@ -313,10 +315,10 @@ public sealed class HtmlReporter : IReporter
             border: 1px solid transparent;
         }
         .chip b { font-size: 1rem; font-weight: 900; }
-        .chip--critical { background: rgba(200,112,112,.12); color: var(--critical); border-color: rgba(200,112,112,.3); }
-        .chip--high     { background: rgba(192,112,80,.12);  color: var(--high);     border-color: rgba(192,112,80,.3); }
-        .chip--medium   { background: rgba(212,162,87,.12);  color: var(--medium);   border-color: rgba(212,162,87,.3); }
-        .chip--low      { background: rgba(127,166,201,.12); color: var(--low);      border-color: rgba(127,166,201,.3); }
+        .chip--critical { background: rgba(140,20,54,.12);   color: var(--critical); border-color: rgba(140,20,54,.3); }
+        .chip--high     { background: rgba(218,43,38,.12);   color: var(--high);     border-color: rgba(218,43,38,.3); }
+        .chip--medium   { background: rgba(245,154,32,.12);  color: var(--medium);   border-color: rgba(245,154,32,.3); }
+        .chip--low      { background: rgba(240,222,27,.12);  color: var(--low);      border-color: rgba(240,222,27,.3); }
         .chip--clean    { background: rgba(58,213,161,.1);   color: var(--success);  border-color: rgba(58,213,161,.3); }
 
         .metarow { display: flex; gap: .75rem; flex-wrap: wrap; font-size: .82rem; color: var(--text-secondary); align-items: center; }
@@ -420,10 +422,10 @@ public sealed class HtmlReporter : IReporter
             letter-spacing: .07em;
             flex-shrink: 0;
         }
-        .sev-badge--critical { background: rgba(200,112,112,.15); color: var(--critical); border: 1px solid rgba(200,112,112,.35); }
-        .sev-badge--high     { background: rgba(192,112,80,.15);  color: var(--high);     border: 1px solid rgba(192,112,80,.35); }
-        .sev-badge--medium   { background: rgba(212,162,87,.15);  color: var(--medium);   border: 1px solid rgba(212,162,87,.35); }
-        .sev-badge--low      { background: rgba(127,166,201,.15); color: var(--low);      border: 1px solid rgba(127,166,201,.35); }
+        .sev-badge--critical { background: rgba(140,20,54,.15);   color: var(--critical); border: 1px solid rgba(140,20,54,.35); }
+        .sev-badge--high     { background: rgba(218,43,38,.15);   color: var(--high);     border: 1px solid rgba(218,43,38,.35); }
+        .sev-badge--medium   { background: rgba(245,154,32,.15);  color: var(--medium);   border: 1px solid rgba(245,154,32,.35); }
+        .sev-badge--low      { background: rgba(240,222,27,.15);  color: var(--low);      border: 1px solid rgba(240,222,27,.35); }
         .sev-badge--info     { background: rgba(168,181,200,.15); color: var(--info);     border: 1px solid rgba(168,181,200,.35); }
 
         .rule-id    { font-family: 'Courier New', Consolas, monospace; font-size: .72rem; color: var(--text-muted); flex-shrink: 0; }

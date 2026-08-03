@@ -38,6 +38,34 @@
     <FontFamily x:Key="BodyAltFont">pack://application:,,,/Assets/#Ghost Theory</FontFamily>
     <FontFamily x:Key="CodeFont">Consolas</FontFamily>
 
+    <!-- ⚠⚠ SELL YOUR SOUL HAS NO NUMBERS AND NO PUNCTUATION. Confirmed by Dave,
+         2026-07-30. It is a letterforms-only display face: digits, apostrophes,
+         periods, commas and parentheses are all absent, and WPF renders them as
+         nothing at all rather than falling back to another font.
+
+         What that looked like in the shipped window before it was caught: the
+         status line read "Scan complete    finding s", the roast verdict read
+         "This isn t a security audit", and SCORE showed no number.
+
+         SO: Sell Your Soul is for ALL-CAPS, LETTERS-ONLY LABELS ONLY. Anything
+         that can contain a digit or a mark of punctuation — body copy, the status
+         line, the verdict, counts, scores, timings — uses TextFont below.
+
+         Before putting Sell Your Soul on anything new, read the string. If it has
+         so much as a period in it, that character disappears silently.
+
+         Coverage measured 2026-07-30 by rendering each glyph and checking whether
+         the geometry is empty. The font's own character table is NOT reliable for
+         this — it claimed Sell Your Soul had periods, and it claimed Ghost Theory
+         did not. Both were wrong. Render it and look at the bounds.
+
+             Ghost Theory      draws everything probed: 0-9 . , : / ( ) ' - %
+             Sell Your Soul    draws NONE of: 0 1 5 9 : . , / ( ) ' - %
+             Street Reich      draws none of: ( ) ' - %   (digits and . , : / ok)
+
+         Street Reich is only on REVENANT SYSTEMS LLC, which is letters. Fine. -->
+    <FontFamily x:Key="TextFont">pack://application:,,,/Assets/#Ghost Theory</FontFamily>
+
     <!-- Back-compat alias so nothing breaks if an old key is still referenced. -->
     <FontFamily x:Key="UiFont">pack://application:,,,/Assets/#Sell Your Soul</FontFamily>
     <FontFamily x:Key="GhostFont">pack://application:,,,/Assets/#Ghost Theory</FontFamily>
@@ -54,7 +82,11 @@
     <!-- Panels carry real alpha so the circuit texture reads through them.
          This translucency IS the look — flattening these to opaque hex is
          what makes the app look like a generic dark theme. -->
-    <SolidColorBrush x:Key="BgSurface"   Color="#CC12141A"/>  <!-- 80% — panels, cards -->
+    <!-- Panels: near-black at 92%. Was #CC12141A — 80%, and a blue-grey rather
+         than a black. Dave, 2026-07-30, after trying textured card backs and
+         pulling them: "let's try less transparent black." Text sits on these, and
+         the background was reading through hard enough to fight it. -->
+    <SolidColorBrush x:Key="BgSurface"   Color="#EB08090C"/>  <!-- 92% — panels, cards -->
     <SolidColorBrush x:Key="BgPanel"     Color="#B50A0B0D"/>  <!-- 71% — deepest wells -->
     <SolidColorBrush x:Key="BgRaised"    Color="#D91A1D24"/>  <!-- 85% — raised cards -->
     <SolidColorBrush x:Key="BgStatusBar" Color="#DD0E1016"/>  <!-- 87% — status strip -->
@@ -113,30 +145,49 @@
     <SolidColorBrush x:Key="TextOnGold"  Color="#050506"/>
 
     <!-- ══ SEVERITY / GRADE ═══════════════════════════════════════════
-         These are Sidekick's established report colors (HtmlReporter), so a
-         finding reads the same color in the app as in an exported report.
-         Warden reuses them for its own severity surfacing.
-         Note: Low #7FA6C9 sits near brand turquoise. Kept deliberately —
-         turquoise is reserved for chrome, never for a severity.        -->
-    <!-- Ramp climbs blue -> yellow -> orange -> RED. Critical was #C87070,
-         which reads pink on obsidian. It is now an unambiguous red. -->
-    <SolidColorBrush x:Key="SevCritical" Color="#D93B33"/>
-    <SolidColorBrush x:Key="SevHigh"     Color="#C07050"/>
-    <SolidColorBrush x:Key="SevMedium"   Color="#D4A257"/>
-    <SolidColorBrush x:Key="SevLow"      Color="#7FA6C9"/>
-    <SolidColorBrush x:Key="SevInfo"     Color="#A8B5C8"/>
+         Set by Dave 2026-07-30 from a colour sketch drawn straight over a
+         screenshot of the running app:
+
+             Info      light blue    #7FA6C9
+             Low       yellow        #F0DE1B
+             Medium    orange        #F59A20
+             High      red           #DA2B26
+             Critical  deep crimson  #8C1436
+
+         A pure heat ramp — yellow, orange, red — and then Critical goes DOWN into
+         crimson rather than further up. Critical is the only value that gets
+         darker instead of hotter, which is what tells it apart from High at a
+         glance rather than by hue alone.
+
+         Earlier passes ran teal Low and purple Critical. Both were replaced by
+         the sketch above. Do not reconstruct them.
+
+         Same values live in SeverityBrushes.cs and HtmlReporter.Css(), so a
+         finding reads identically on screen and in an exported report. Three
+         places, one palette — change all three.
+
+         ⚠ Critical #8C1436 is dark on purpose and measures roughly 2:1 against
+         obsidian. Fine as a fill, a border or a chip, which is all it is used for.
+         Do not put small text in it on the app background.                    -->
+    <SolidColorBrush x:Key="SevCritical" Color="#8C1436"/>
+    <SolidColorBrush x:Key="SevHigh"     Color="#DA2B26"/>
+    <SolidColorBrush x:Key="SevMedium"   Color="#F59A20"/>
+    <SolidColorBrush x:Key="SevLow"      Color="#F0DE1B"/>
+    <SolidColorBrush x:Key="SevInfo"     Color="#7FA6C9"/>
     <SolidColorBrush x:Key="Jade"        Color="#3AD5A1"/>
 
-    <SolidColorBrush x:Key="SevCriticalWash" Color="#26D93B33"/>
-    <SolidColorBrush x:Key="SevHighWash"     Color="#26C07050"/>
-    <SolidColorBrush x:Key="SevMediumWash"   Color="#26D4A257"/>
-    <SolidColorBrush x:Key="SevLowWash"      Color="#267FA6C9"/>
+    <SolidColorBrush x:Key="SevCriticalWash" Color="#268C1436"/>
+    <SolidColorBrush x:Key="SevHighWash"     Color="#26DA2B26"/>
+    <SolidColorBrush x:Key="SevMediumWash"   Color="#26F59A20"/>
+    <SolidColorBrush x:Key="SevLowWash"      Color="#26F0DE1B"/>
+    <SolidColorBrush x:Key="SevInfoWash"     Color="#267FA6C9"/>
 
     <!-- Brighter fills for the selected/active state of a severity card. -->
-    <SolidColorBrush x:Key="SevCriticalActive" Color="#59D93B33"/>
-    <SolidColorBrush x:Key="SevHighActive"     Color="#59C07050"/>
+    <SolidColorBrush x:Key="SevCriticalActive" Color="#598F3BBF"/>
+    <SolidColorBrush x:Key="SevHighActive"     Color="#59D93B33"/>
     <SolidColorBrush x:Key="SevMediumActive"   Color="#59D4A257"/>
-    <SolidColorBrush x:Key="SevLowActive"      Color="#597FA6C9"/>
+    <SolidColorBrush x:Key="SevLowActive"      Color="#593EC2C7"/>
+    <SolidColorBrush x:Key="SevInfoActive"     Color="#597FA6C9"/>
 
     <!-- ══ TYPE STYLES ════════════════════════════════════════════════ -->
     <Style x:Key="Wordmark" TargetType="TextBlock">
@@ -153,32 +204,62 @@
         <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
 
+    <!-- ⚠ These are Sell Your Soul, NOT Street Reich, and that is deliberate.
+         Street Reich is reserved for exactly two pieces of text in the whole app:
+         SECURITY AUDIT in the header band, and REVENANT SYSTEMS in the footer.
+         Both set it inline. Dave, 2026-07-30, after seeing it applied to every
+         section label: "these shouldn't be Street Reich, only these two."
+         Do not promote it back into these shared styles.
+
+         Sizes stay up from the original 9 and 10 — that part was never the
+         problem with the font, 9px was just too small. Eyebrow was GoldDeep
+         #7A633E, about 3.6:1 on obsidian, under the line for text this size.
+         Gold measures about 11:1. -->
     <Style x:Key="Eyebrow" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="Foreground" Value="{StaticResource GoldDeep}"/>
-        <Setter Property="FontSize" Value="9"/>
+        <Setter Property="Foreground" Value="{StaticResource Gold}"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="Bold"/>
     </Style>
 
     <Style x:Key="SectionLabel" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
         <Setter Property="Foreground" Value="{StaticResource Gold}"/>
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="16"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Margin" Value="0,0,0,6"/>
     </Style>
 
+    <!-- Base text. Bold by default — Sell Your Soul is a thin display face and at
+         UI sizes its strokes drop out; the letters literally lose pieces. WPF has
+         no real bold for it (the TTF ships one face) so this is a synthesized
+         bold, which is exactly what it is for.
+
+         ⚠ NO FontSize SETTER HERE, DELIBERATELY. There used to be one, at 12, and
+         it was silently overriding every control in the app: when a Button or
+         CheckBox has a plain string as content, WPF generates a TextBlock for it,
+         this implicit style lands on that TextBlock, and a style setter outranks
+         the value inherited from the control. So setting FontSize on a Button did
+         nothing at all. Without the setter, text inherits from its container and
+         control font sizes work the way you'd expect. -->
     <Style TargetType="TextBlock">
+        <!-- Sell Your Soul stays the default look. Anything that can contain a
+             digit or a punctuation mark sets FontFamily="{StaticResource TextFont}"
+             on itself instead — see the font block at the top of this file. -->
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
         <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
     </Style>
 
     <!-- ══ BUTTON ═════════════════════════════════════════════════════ -->
+    <!-- 14, not 12. Sell Your Soul is a thin display face and at 12 its stems
+         start dropping out on control labels — "Browse", "Roast", "Student mode"
+         lose pieces of letters. SCAN reads fine at the same size only because
+         PrimaryButton is bold on a gold fill. PrimaryButton inherits this size. -->
     <Style TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource Gold}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="Padding" Value="14,6"/>
         <Setter Property="Margin" Value="3,0"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -254,7 +335,11 @@
         <Setter Property="CaretBrush" Value="{StaticResource Gold}"/>
         <Setter Property="SelectionBrush" Value="{StaticResource Turquoise}"/>
         <Setter Property="FontFamily" Value="{StaticResource CodeFont}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
+        <!-- TextBox draws its own text rather than going through a TextBlock, so
+             it does not pick up the base style's weight. Set it here. Consolas
+             has a real bold face, unlike the display fonts. -->
+        <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Padding" Value="8,6"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -287,7 +372,7 @@
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource TextCode}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -324,7 +409,7 @@
     <Style x:Key="DarkComboBoxItemStyle" TargetType="ComboBoxItem">
         <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="Padding" Value="8,5"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -346,8 +431,8 @@
     <Style TargetType="ComboBox">
         <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Height" Value="26"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Height" Value="30"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItemStyle}"/>
         <Setter Property="Template">
@@ -408,7 +493,7 @@
         <Setter Property="Background" Value="#CC0E1016"/>
         <Setter Property="Foreground" Value="{StaticResource Gold}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Padding" Value="10,8"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>

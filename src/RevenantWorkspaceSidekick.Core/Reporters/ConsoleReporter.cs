@@ -114,29 +114,9 @@ public sealed class ConsoleReporter(bool roastMode = false, bool studentMode = f
         output.WriteLine();
     }
 
+    // Wording lives in Verdict so the desktop UI can print the same sentence.
     private static void WriteRoast(ScanResult result, TextWriter output, bool hard, bool student)
-    {
-        var msg = hard
-            ? result.Grade switch
-            {
-                'A' => "A. Either you actually know what you're doing, or you haven't checked in your AWS keys yet. Stay vigilant.",
-                'B' => "B. Solid work. Still wouldn't trust this on a network that matters, but you're not the worst vibe-coder I've seen today.",
-                'C' => "C. Your AI wrote this. You can tell because it works in demos and falls apart under any real threat model.",
-                'D' => "D. This app is one misconfigured registry key away from becoming a conference talk case study.",
-                _ => student 
-                    ? "F. This isn't a homework submission. This is an incident report. Do not turn this in." 
-                    : "F. This isn't a security audit. This is an incident report for something that hasn't happened yet."
-            }
-            : result.Grade switch
-            {
-                'A' => student ? "Clean build. Ready to turn in." : "Clean build. Ship it.",
-                'B' => student ? "A few rough edges. Worth a look before you turn it in." : "A few rough edges. Worth a look before release.",
-                'C' => student ? "Some real issues here. Don't turn this in without addressing the highs." : "Some real issues here. Don't ship without addressing the highs.",
-                'D' => student ? "Significant findings. This needs work before you submit it." : "Significant findings. This needs work before it goes anywhere near production.",
-                _ => student ? "Do not turn this in." : "Do not ship this."
-            };
-        output.WriteLine($"  {msg}");
-    }
+        => output.WriteLine($"  {Verdict.For(result.Grade, hard, student)}");
 
     private static ConsoleColor SeverityColor(Severity s) => s switch
     {
