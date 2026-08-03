@@ -183,10 +183,10 @@
     <SolidColorBrush x:Key="SevInfoWash"     Color="#267FA6C9"/>
 
     <!-- Brighter fills for the selected/active state of a severity card. -->
-    <SolidColorBrush x:Key="SevCriticalActive" Color="#598F3BBF"/>
-    <SolidColorBrush x:Key="SevHighActive"     Color="#59D93B33"/>
-    <SolidColorBrush x:Key="SevMediumActive"   Color="#59D4A257"/>
-    <SolidColorBrush x:Key="SevLowActive"      Color="#593EC2C7"/>
+    <SolidColorBrush x:Key="SevCriticalActive" Color="#598C1436"/>
+    <SolidColorBrush x:Key="SevHighActive"     Color="#59DA2B26"/>
+    <SolidColorBrush x:Key="SevMediumActive"   Color="#59F59A20"/>
+    <SolidColorBrush x:Key="SevLowActive"      Color="#59F0DE1B"/>
     <SolidColorBrush x:Key="SevInfoActive"     Color="#597FA6C9"/>
 
     <!-- ══ TYPE STYLES ════════════════════════════════════════════════ -->
