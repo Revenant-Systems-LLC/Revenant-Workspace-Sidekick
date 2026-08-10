@@ -7,7 +7,7 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>RevenantWorkspaceSidekick.Ui</AssemblyName>
     <RootNamespace>RevenantWorkspaceSidekick.Ui</RootNamespace>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>Assets\RWS_VegVisir.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +39,21 @@
          Revenant Systems owns the app; Workspace Sidekick is the product. -->
     <Resource Include="Assets\RevSys_Wordmark_Turquoise.png" />
     <Resource Include="Assets\VegVisir_Turquoise.png" />
+
+    <!-- The app icon: the Vegvisir as a 7-frame .ico (16/24/32/48/64/128/256),
+         built from VegVisir_Turquoise.png 2026-08-09 at Dave's direction.
+
+         ⚠ THE .ico IS FOR <ApplicationIcon> ONLY — the exe's icon, which Windows
+         reads as a proper icon group and picks the right frame from.
+
+         Do NOT point the Window's Icon="..." at it. WPF's XAML icon path
+         (ImageSourceConverter, BitmapFrame.Create and BitmapImage all behave the
+         same) takes Frames[0] of a multi-frame .ico, which is the 16x16 — and
+         then Windows upscales that mush into alt-tab and the taskbar. Measured
+         2026-08-09: this .ico via the XAML path yields 16x16; the PNG yields
+         1024x1008. That is why MainWindow.xaml uses VegVisir_Turquoise.png for
+         Icon= and this file is referenced only by ApplicationIcon above. -->
+    <Resource Include="Assets\RWS_VegVisir.ico" />
     <!-- THE company logo — obsidian and gold skull inside the runic hex frame.
          Sits left of REVENANT SYSTEMS in the footer. Distinct from the Vegvisir,
          which now fills the grade ring until a scan produces a grade. -->

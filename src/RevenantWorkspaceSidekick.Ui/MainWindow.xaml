@@ -5,7 +5,7 @@
         Title="Revenant Workspace Sidekick"
         Height="880" Width="1420"
         MinHeight="640" MinWidth="1120"
-        Icon="Assets/RWS_Mark.png"
+        Icon="Assets/VegVisir_Turquoise.png"
         Background="{StaticResource BgApp}"
         TextOptions.TextFormattingMode="Display">
 

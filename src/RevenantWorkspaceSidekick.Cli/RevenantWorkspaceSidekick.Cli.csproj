@@ -17,6 +17,13 @@
     <Authors>Revenant Systems LLC</Authors>
     <Copyright>Copyright © 2026 Revenant Systems LLC</Copyright>
     <Description>Windows-focused hardening scanner for AI-coded desktop apps. Audits MSIX, registry, process launch, and embedded secrets before you ship.</Description>
+
+    <!-- Same Vegvisir mark the UI uses. Deliberately a local copy rather than a
+         ..\ path into the Ui project: ApplicationIcon reaching outside its own
+         project directory is fragile across SDK versions, and this file never
+         changes. Source of truth is
+         src\RevenantWorkspaceSidekick.Ui\Assets\RWS_VegVisir.ico. -->
+    <ApplicationIcon>Assets\RWS_VegVisir.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\RevenantWorkspaceSidekick.Core\RevenantWorkspaceSidekick.Core.csproj" />
