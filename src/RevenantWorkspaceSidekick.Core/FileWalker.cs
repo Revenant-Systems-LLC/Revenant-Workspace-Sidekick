@@ -23,6 +23,29 @@ public static class FileWalker
     private static readonly HashSet<string> DefaultExcludeSegments = new(StringComparer.OrdinalIgnoreCase)
     {
         "bin", "obj", "dist", "publish", ".git", ".vs", ".idea", "packages", "node_modules",
+
+        // Dependency directories for the non-.NET ecosystems rws grew rules for.
+        // These hold other people's code, vendored into the project tree. Scanning them
+        // grades the user on their dependencies: a Heimdall scan was 976 site-packages
+        // .py files against 69 first-party files, which pinned the score to 0.
+        // NOTE: this is noise suppression, NOT supply-chain protection. Pattern rules
+        // cannot distinguish a backdoor from a library's legitimate use of the same
+        // construct. Use --audit-deps for known-vulnerable dependency versions.
+        //
+        // Python. "site-packages" is the load-bearing one: it catches virtualenvs
+        // whatever the user named the top directory (myenv/Lib/site-packages).
+        ".venv", "venv", "site-packages", "__pycache__", ".tox", ".nox", ".eggs",
+        // Go, PHP/Composer.
+        "vendor",
+        // Gradle, Dart/Flutter, Swift/CocoaPods.
+        ".gradle", ".dart_tool", ".pub-cache", "Pods",
+        // Tool caches: generated, never developer-authored.
+        ".pytest_cache", ".mypy_cache", ".ruff_cache", ".pip-cache",
+        // Deliberately NOT excluded: "target" (Maven/Rust) and "build" (Gradle).
+        // Both are conventional output directories but are occasionally real source
+        // directories, and silently skipping someone's code is worse than noise.
+        // Left for an explicit decision rather than assumed.
+
         // Package-manager-generated lockfiles: not developer-authored, and their
         // base64/hex integrity hashes trip the SEC-001 high-entropy secret heuristic.
         "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "composer.lock",
