@@ -33,7 +33,7 @@ public sealed class SarifReporter : IReporter
         writer.WriteString("name", "RWS");
         writer.WriteString("fullName", "Revenant Workspace Sidekick");
         writer.WriteString("version", "0.68");
-        writer.WriteString("informationUri", "https://github.com/savageAZfck/revenant-workspace-sidekick");
+        writer.WriteString("informationUri", "https://github.com/Revenant-Systems-LLC/Revenant-Workspace-Sidekick");
         writer.WriteStartArray("rules");
         foreach (var (ruleId, f) in ruleMap)
         {

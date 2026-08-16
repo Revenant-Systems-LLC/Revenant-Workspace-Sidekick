@@ -1,0 +1,22 @@
+# Secret scanning gate for Revenant Workspace Sidekick.
+#
+# Enforces the Nomos Part VI secret baseline at commit time. The .gitignore
+# baseline keeps secrets from being staged by accident; this keeps one from
+# reaching history when it is staged on purpose.
+#
+# One-time setup per clone:
+#   winget install Gitleaks.Gitleaks
+#   pre-commit install
+#
+# This uses the gitleaks-system hook, which calls a gitleaks already on PATH.
+# The default gitleaks hook is language: golang and would need a Go toolchain
+# for pre-commit to build the binary itself; this machine has no Go.
+#
+# If the hook blocks a commit, the block stands. Do not pass --no-verify.
+# Rotate the exposed credential, remove it from the staged change, recommit.
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks-system
