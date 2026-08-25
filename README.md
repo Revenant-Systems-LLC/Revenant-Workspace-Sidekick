@@ -140,5 +140,15 @@ Typical workflow:
 dotnet build
 dotnet test
 dotnet run --project src/RevenantWorkspaceSidekick.Cli -- scan .
+Secret scanning
+Commits are gated by gitleaks via pre-commit, enforcing the Nomos Part VI secret baseline.
+
+One-time setup after cloning:
+
+winget install Gitleaks.Gitleaks
+pre-commit install
+
+If the hook blocks a commit, the block stands. Rotate the credential and recommit; do not pass --no-verify.
+
 License
 Proprietary. See LICENSE. Paid, perpetual, single-user; no redistribution or resale.

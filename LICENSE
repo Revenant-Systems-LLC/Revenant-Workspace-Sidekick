@@ -1,0 +1,60 @@
+REVENANT SYSTEMS LLC — END USER LICENSE AGREEMENT
+Revenant Workspace Sidekick (rws)
+Copyright (c) 2026 Revenant Systems LLC. All rights reserved.
+
+This is a paid, proprietary product. It is licensed, not sold. By downloading,
+installing, or using the software ("Software"), you agree to the terms below.
+If you do not agree, do not use the Software and request a refund per the
+posted refund policy.
+
+1. GRANT OF LICENSE
+   Subject to payment and these terms, Revenant Systems LLC grants you a
+   perpetual, non-exclusive, non-transferable license to install and use the
+   Software on machines you own or control, for your own development work.
+
+2. RESTRICTIONS
+   You may not:
+   - redistribute, resell, sublicense, rent, or lease the Software or any
+     copy of it;
+   - reverse engineer, decompile, or disassemble the Software, except to the
+     extent applicable law expressly permits despite this restriction;
+   - remove or alter any copyright, trademark, or proprietary notice;
+   - use the Software to build a competing product.
+
+3. NO SOURCE ACCESS
+   This license grants no right to the Software's source code. The source
+   repository is private and is not distributed with this license.
+
+4. OWNERSHIP
+   Revenant Systems LLC retains all right, title, and interest in the
+   Software, including all intellectual property rights. This agreement does
+   not transfer any ownership.
+
+5. THIRD-PARTY COMPONENTS
+   The Software may include open-source or third-party components, each
+   governed by its own license. Those licenses take precedence over this
+   agreement for the components they cover.
+
+6. WARRANTY DISCLAIMER
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. The Software is a
+   static-analysis aid, not a guarantee of security. It does not find every
+   issue in every project, and using it does not make your software secure.
+
+7. LIMITATION OF LIABILITY
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, REVENANT SYSTEMS LLC SHALL NOT BE
+   LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
+   DAMAGES, OR ANY LOSS OF PROFITS OR DATA, ARISING FROM YOUR USE OF THE
+   SOFTWARE. TOTAL LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE AMOUNT
+   YOU PAID FOR THE SOFTWARE.
+
+8. TERMINATION
+   This license terminates automatically if you breach these terms. On
+   termination, you must stop using the Software and destroy all copies.
+
+9. GOVERNING LAW
+   This agreement is governed by the laws of the State of Missouri, without
+   regard to conflict-of-law principles.
+
+Questions: dave@revenantsystems.net
