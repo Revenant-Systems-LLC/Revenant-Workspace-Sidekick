@@ -461,9 +461,8 @@ src_backup_pre_split/
 
 # Agent scratch: screenshots, video contact sheets, scan output.
 # todo.md and lessons.md are the exception - those are project record.
-tasks/*
-!tasks/todo.md
-!tasks/lessons.md
+# Session task logs (history lives in docs/notes/)
+tasks/
 
 # Superseded asset revisions
 **/*_prev_*.png
