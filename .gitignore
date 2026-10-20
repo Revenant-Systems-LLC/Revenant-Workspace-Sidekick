@@ -459,9 +459,9 @@ ship-plan-dist/
 # Pre-refactor source backup. 406 files / 118MB of duplicated tree.
 src_backup_pre_split/
 
-# Agent scratch: screenshots, video contact sheets, scan output.
-# todo.md and lessons.md are the exception - those are project record.
-# Session task logs (history lives in docs/notes/)
+# Agent scratch and session task logs: screenshots, video contact sheets,
+# scan output. The whole folder is ignored, with no exceptions; task plans
+# and findings worth keeping go in docs/notes/.
 tasks/
 
 # Superseded asset revisions

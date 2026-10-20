@@ -9,8 +9,9 @@
 #   pre-commit install
 #
 # This uses the gitleaks-system hook, which calls a gitleaks already on PATH.
-# The default gitleaks hook is language: golang and would need a Go toolchain
-# for pre-commit to build the binary itself; this machine has no Go.
+# The default gitleaks hook is language: golang, so pre-commit would need a Go
+# toolchain to build the binary itself; using the installed binary means
+# contributors only need gitleaks, not Go.
 #
 # If the hook blocks a commit, the block stands. Do not pass --no-verify.
 # Rotate the exposed credential, remove it from the staged change, recommit.
@@ -20,3 +21,9 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks-system
+        # gitleaks git --pre-commit reads the staged diff itself and takes at
+        # most one path (the repo). Upstream sets this on the gitleaks hook but
+        # not on gitleaks-system, so without it pre-commit appends the staged
+        # file names: two or more fail the commit, and one is taken as the repo
+        # path, nothing is scanned, and the hook passes.
+        pass_filenames: false
