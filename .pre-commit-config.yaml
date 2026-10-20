@@ -20,3 +20,9 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks-system
+        # gitleaks git --pre-commit reads the staged diff itself and takes at
+        # most one path (the repo). Upstream sets this on the gitleaks hook but
+        # not on gitleaks-system, so without it pre-commit appends the staged
+        # file names: two or more fail the commit, and one is taken as the repo
+        # path, nothing is scanned, and the hook passes.
+        pass_filenames: false
