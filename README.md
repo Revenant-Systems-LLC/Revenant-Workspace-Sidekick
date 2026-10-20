@@ -38,7 +38,6 @@ rws scan
 rws scan .\myapp
 rws scan .\myapp --format json
 rws scan .\myapp --format html --output report.html
-rws scan .\myapp --offline
 rws scan .\myapp --roast
 ```
 
