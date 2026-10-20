@@ -107,14 +107,19 @@ public static class RuleEngine
 
         // Dedup: when the same rule fires more than once on the same file+line
         // (e.g. both the AhoCorasick pass and the regex pass in SEC-001 match the
-        // same token), keep only the highest-severity instance with a deterministic
-        // tie-breaker on RuleId+Title. Different rules are always kept, even on the
-        // same line. Null-line findings (XML rules) are never collapsed.
+        // same token), keep only the highest-severity instance. Ties go to the
+        // finding that carries a RawValue, since --verify can only check those,
+        // then to Title so the pick stays deterministic. Different rules are always
+        // kept, even on the same line. Null-line findings (XML rules) are never collapsed.
         var filtered = allFindings.Where(f => f.Severity >= options.MinSeverity);
         var deduped = filtered
             .Where(f => f.Line.HasValue)
             .GroupBy(f => (f.File, f.Line!.Value, f.RuleId))
-            .Select(g => g.OrderByDescending(f => f.Severity).ThenBy(f => f.Title).First())
+            .Select(g => g
+                .OrderByDescending(f => f.Severity)
+                .ThenByDescending(f => f.RawValue is not null)
+                .ThenBy(f => f.Title)
+                .First())
             .Concat(filtered.Where(f => !f.Line.HasValue));
 
         var findings = deduped
