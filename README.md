@@ -49,11 +49,23 @@ rws baseline status [path]
 rws baseline clear [path]
 ```
 
-Install or remove the pre-commit hook:
+Install or remove the RWS pre-commit hook in a project you want scanned on every commit:
 
 ```
 rws hook install
 rws hook uninstall
+```
+
+The hook runs `rws scan --diff --severity high` and is written directly to `.git/hooks/pre-commit`. `rws hook install` will not overwrite a hook it did not write. The pre-commit framework (`pre-commit install`) manages that same file, so in a repo that uses the framework, add rws to its `.pre-commit-config.yaml` as a local hook instead of running `rws hook install`:
+
+```yaml
+- repo: local
+  hooks:
+    - id: rws
+      name: rws scan
+      entry: rws scan --diff --severity high
+      language: system
+      pass_filenames: false
 ```
 
 Output goes to stdout or to a file depending on the command and flags.
@@ -112,12 +124,14 @@ dotnet run --project src/RevenantWorkspaceSidekick.Cli -- scan .
 
 ## Secret scanning
 
-Commits are gated by gitleaks via pre-commit, enforcing the Nomos Part VI secret baseline. One-time setup after cloning:
+Commits to this repo are gated by gitleaks through the pre-commit framework, enforcing the Nomos Part VI secret baseline, but only once the hook is installed. A fresh clone has no hook and checks nothing, so run this once after cloning:
 
 ```powershell
 winget install Gitleaks.Gitleaks
 pre-commit install
 ```
+
+`pre-commit install` takes over `.git/hooks/pre-commit`, the same file `rws hook install` writes. If the clone already has the RWS hook, pre-commit moves it to `.git/hooks/pre-commit.legacy` and still runs it before gitleaks; `pre-commit install -f` discards it instead. Once pre-commit owns the file, `rws hook install` and `rws hook uninstall` refuse to change it, and `pre-commit uninstall` puts the previous hook back.
 
 If the hook blocks a commit, the block stands. Rotate the credential and recommit. Do not pass `--no-verify`.
 
